@@ -8,6 +8,8 @@
 #ifndef RIUSON_PREUDOFILESYSTEM_PFS_FILE_INFO_H_
 #define RIUSON_PREUDOFILESYSTEM_PFS_FILE_INFO_H_
 
+#include  "pfs_directory_record.h"
+
 #pragma pack(push, 1)
 
 typedef struct tFileInfos {
@@ -18,6 +20,10 @@ typedef struct tFileInfos {
   uint16_t startCluster;
   uint16_t clustersCount;
 
+  uint32_t dataAreaOffset;
+  uint32_t dataAreaLength;
+
+  tDirectoryRecord directoryRecord;
 } tFileInfo;
 
 #pragma pack(pop)

@@ -26,4 +26,6 @@
 #define PFS_OEM_ID                { 'R', 'I', 'U', 'S', 'O', 'N', ' ', ' ' }
 #define PFS_SYSTEM_ID             { 'F', 'A', 'T', '1', '6', ' ', ' ', ' ' }
 
+#define PFS_BYTES_PER_CLUSTER     (PFS_BYTES_PER_SECTOR * PFS_SECTORS_PER_CLUSTER)
+
 #endif /* RIUSON_PREUDOFILESYSTEM_PFS_CONF_H_ */

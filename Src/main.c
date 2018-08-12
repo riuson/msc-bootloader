@@ -53,14 +53,25 @@
 #include "gpio.h"
 
 /* USER CODE BEGIN Includes */
-
+#include "pfs.h"
 /* USER CODE END Includes */
 
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
 /* Private variables ---------------------------------------------------------*/
-
+tFileInfo pseudoFiles[] = {
+  {
+    { 'R', 'E', 'A', 'D', 'M', 'E', ' ', ' ' },
+    { 'T', 'X', 'T' },
+    1024u
+  },
+  {
+    { 'F', 'I', 'R', 'M', 'W', 'A', 'R', 'E' },
+    { 'B', 'I', 'N' },
+    2u * 1024u * 1024u
+  }
+};
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -99,7 +110,7 @@ int main(void)
   SystemClock_Config();
 
   /* USER CODE BEGIN SysInit */
-
+  pfsInitialize(2, pseudoFiles);
   /* USER CODE END SysInit */
 
   /* Initialize all configured peripherals */
