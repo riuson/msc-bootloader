@@ -82,6 +82,10 @@ uint32_t pfsGetTotalSectorsCount(void)
   return PFS_TOTAL_SECTORS;
 }
 
+__weak void pfsFileReadCallback(uint8_t fileId, uint8_t *buffer, uint32_t offset, uint32_t count)
+{
+}
+
 static void pfsReadSector(uint32_t offset, uint8_t *buffer)
 {
   if (offset == 0) {
@@ -124,7 +128,16 @@ static void pfsReadSector(uint32_t offset, uint8_t *buffer)
   }
 
   if ((offset >= fileSystem.dataAreaOffset) && (offset < (fileSystem.dataAreaOffset + fileSystem.dataAreaLength))) {
-    memset(buffer, 0x55, PFS_BYTES_PER_SECTOR);
+    memset(buffer, 0, PFS_BYTES_PER_SECTOR);
+
+    for (uint32_t fileIndex = 0; fileIndex < fileSystem.filesCount; fileIndex++) {
+      if ((fileSystem.fileInfoArray[fileIndex].dataAreaOffset <= offset) && (offset < (fileSystem.fileInfoArray[fileIndex].dataAreaOffset + fileSystem.fileInfoArray[fileIndex].dataAreaLength))) {
+        offset -= fileSystem.fileInfoArray[fileIndex].dataAreaOffset;
+        pfsFileReadCallback(fileSystem.fileInfoArray[fileIndex].id, buffer, offset, PFS_BYTES_PER_SECTOR);
+        return;
+      }
+    }
+
     return;
   }
 }

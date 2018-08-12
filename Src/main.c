@@ -54,6 +54,7 @@
 
 /* USER CODE BEGIN Includes */
 #include "pfs.h"
+#include "readme.h"
 /* USER CODE END Includes */
 
 /* Private variables ---------------------------------------------------------*/
@@ -62,11 +63,13 @@
 /* Private variables ---------------------------------------------------------*/
 tFileInfo pseudoFiles[] = {
   {
+    1,
     { 'R', 'E', 'A', 'D', 'M', 'E', ' ', ' ' },
     { 'T', 'X', 'T' },
     1024u
   },
   {
+    2,
     { 'F', 'I', 'R', 'M', 'W', 'A', 'R', 'E' },
     { 'B', 'I', 'N' },
     2u * 1024u * 1024u
@@ -192,6 +195,21 @@ void SystemClock_Config(void)
 }
 
 /* USER CODE BEGIN 4 */
+
+void pfsFileReadCallback(uint8_t fileId, uint8_t *buffer, uint32_t offset, uint32_t count)
+{
+  switch (fileId) {
+    // readme.txt
+    case 1: {
+      memcpy(buffer, ((uint8_t *)readme_txt) + offset, ((offset + count) > readme_txt_size) ? readme_txt_size - offset : count);
+      break;
+    }
+
+    default: {
+      break;
+    }
+  }
+}
 
 /* USER CODE END 4 */
 

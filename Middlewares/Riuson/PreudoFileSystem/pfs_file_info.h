@@ -13,6 +13,7 @@
 #pragma pack(push, 1)
 
 typedef struct tFileInfos {
+  uint8_t id;
   uint8_t name[8];
   uint8_t extension[3];
   uint32_t size;
