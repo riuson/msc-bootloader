@@ -40,8 +40,8 @@ void pfsInitialize(uint8_t filesCount, tFileInfo *fileInfoArray)
     directoryRecordSetAccessDate(&fileInfoArray[i].directoryRecord, &initializationTime);
     directoryRecordSetWriteDateTime(&fileInfoArray[i].directoryRecord, &initializationTime);
     fileInfoArray[i].directoryRecord.attributes = AttrArchive | AttrReadOnly;
-    strncpy(fileInfoArray[i].directoryRecord.name, fileInfoArray->name, 8);
-    strncpy(fileInfoArray[i].directoryRecord.extension, fileInfoArray->extension, 3);
+    memcpy(fileInfoArray[i].directoryRecord.name, fileInfoArray[i].name, 8);
+    memcpy(fileInfoArray[i].directoryRecord.extension, fileInfoArray[i].extension, 3);
     fileInfoArray[i].directoryRecord.fileSize = fileInfoArray[i].size;
     fileInfoArray[i].directoryRecord.startClusterLow = fileInfoArray[i].startCluster;
     fileInfoArray[i].dataAreaOffset = dataAreaOffset + (fileInfoArray[i].startCluster * PFS_BYTES_PER_CLUSTER);
@@ -104,7 +104,8 @@ static void pfsReadSector(uint32_t offset, uint8_t *buffer)
   }
 
   if ((offset >= fileSystem.rootOffset) && (offset < (fileSystem.rootOffset + fileSystem.rootLength))) {
-    offset -= fileSystem.fat2Offset - fileSystem.rootOffset;
+    memset(buffer, 0, PFS_BYTES_PER_SECTOR);
+    offset -= fileSystem.rootOffset;
 
     uint16_t firstFileInSectorOfRoot = offset / sizeof(tDirectoryRecord);
     uint16_t filesPerSectorOfRoot = PFS_BYTES_PER_SECTOR / sizeof(tDirectoryRecord);
@@ -145,9 +146,8 @@ static void pfsReadFatSector(uint8_t fatNumber, uint32_t firstDword, uint32_t of
   }
 
   for (uint32_t fileIndex = 0; fileIndex < fileSystem.filesCount; fileIndex++) {
-    if ((requestedFatSectorStartCluster >= fileSystem.fileInfoArray[fileIndex].startCluster) && (requestedFatSectorStartCluster < (fileSystem.fileInfoArray[fileIndex].startCluster + fileSystem.fileInfoArray[fileIndex].clustersCount))) {
-
-      for (; bufferIndex < PFS_BYTES_PER_SECTOR / sizeof(uint16_t); bufferIndex++) {
+    if (((requestedFatSectorStartCluster + bufferIndex) >= fileSystem.fileInfoArray[fileIndex].startCluster) && (requestedFatSectorStartCluster < (fileSystem.fileInfoArray[fileIndex].startCluster + fileSystem.fileInfoArray[fileIndex].clustersCount))) {
+      for (; bufferIndex < requestedFatSectorClustersCount; bufferIndex++) {
         uint16_t clusterIndex = requestedFatSectorStartCluster + bufferIndex;
         buffer16[bufferIndex] = clusterIndex + 1;
 
