@@ -8,7 +8,7 @@
 #ifndef README_H_
 #define README_H_
 
-extern char readme_txt[];
-extern unsigned readme_txt_size;
+extern const char readme_txt[];
+extern const unsigned const readme_txt_size;
 
 #endif /* DATA_README_H_ */

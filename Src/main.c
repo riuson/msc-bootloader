@@ -66,7 +66,7 @@ tFileInfo pseudoFiles[] = {
     1,
     { 'R', 'E', 'A', 'D', 'M', 'E', ' ', ' ' },
     { 'T', 'X', 'T' },
-    1024u
+    0
   },
   {
     2,
@@ -113,6 +113,7 @@ int main(void)
   SystemClock_Config();
 
   /* USER CODE BEGIN SysInit */
+  pseudoFiles[0].size = readme_txt_size;
   pfsInitialize(2, pseudoFiles);
   /* USER CODE END SysInit */
 
