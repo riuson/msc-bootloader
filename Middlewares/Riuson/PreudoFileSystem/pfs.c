@@ -151,7 +151,7 @@ static void pfsReadFatSector(uint8_t fatNumber, uint32_t firstDword, uint32_t of
         uint16_t clusterIndex = requestedFatSectorStartCluster + bufferIndex;
         buffer16[bufferIndex] = clusterIndex + 1;
 
-        if (clusterIndex == (fileSystem.fileInfoArray[fileIndex].startCluster + fileSystem.fileInfoArray[fileIndex].clustersCount)) {
+        if (clusterIndex == (fileSystem.fileInfoArray[fileIndex].startCluster + fileSystem.fileInfoArray[fileIndex].clustersCount - 1)) {
           buffer16[bufferIndex] = 0xffff;
 
           if (++fileIndex >= fileSystem.filesCount) {
