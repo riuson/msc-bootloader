@@ -77,6 +77,11 @@ void pfsRead(uint32_t offset, uint32_t count, uint8_t *buffer)
   }
 }
 
+uint32_t pfsGetTotalSectorsCount(void)
+{
+  return PFS_TOTAL_SECTORS;
+}
+
 static void pfsReadSector(uint32_t offset, uint8_t *buffer)
 {
   if (offset == 0) {

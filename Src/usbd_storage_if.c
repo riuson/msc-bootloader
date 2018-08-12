@@ -51,7 +51,7 @@
 #include "usbd_storage_if.h"
 
 /* USER CODE BEGIN INCLUDE */
-
+#include "pfs.h"
 /* USER CODE END INCLUDE */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -96,7 +96,8 @@
 #define STORAGE_BLK_SIZ                  0x200
 
 /* USER CODE BEGIN PRIVATE_DEFINES */
-
+#undef STORAGE_BLK_NBR
+#define STORAGE_BLK_NBR (pfsGetTotalSectorsCount())
 /* USER CODE END PRIVATE_DEFINES */
 
 /**
@@ -262,6 +263,7 @@ int8_t STORAGE_IsWriteProtected_HS(uint8_t lun)
 int8_t STORAGE_Read_HS(uint8_t lun, uint8_t *buf, uint32_t blk_addr, uint16_t blk_len)
 {
   /* USER CODE BEGIN 13 */
+  pfsRead(blk_addr * STORAGE_BLK_SIZ, STORAGE_BLK_SIZ * blk_len, buf);
   return (USBD_OK);
   /* USER CODE END 13 */
 }

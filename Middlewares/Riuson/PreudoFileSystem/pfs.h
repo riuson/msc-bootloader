@@ -13,5 +13,6 @@
 
 void pfsInitialize(uint8_t filesCount, tFileInfo *fileInfoArray);
 void pfsRead(uint32_t offset, uint32_t count, uint8_t *buffer);
+uint32_t pfsGetTotalSectorsCount(void);
 
 #endif /* RIUSON_PREUDOFILESYSTEM_PFS_H_ */
