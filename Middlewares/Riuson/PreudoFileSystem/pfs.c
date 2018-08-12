@@ -44,7 +44,7 @@ void pfsInitialize(uint8_t filesCount, tFileInfo *fileInfoArray)
     memcpy(fileInfoArray[i].directoryRecord.extension, fileInfoArray[i].extension, 3);
     fileInfoArray[i].directoryRecord.fileSize = fileInfoArray[i].size;
     fileInfoArray[i].directoryRecord.startClusterLow = fileInfoArray[i].startCluster;
-    fileInfoArray[i].dataAreaOffset = dataAreaOffset + (fileInfoArray[i].startCluster * PFS_BYTES_PER_CLUSTER);
+    fileInfoArray[i].dataAreaOffset = dataAreaOffset + ((fileInfoArray[i].startCluster - 2) * PFS_BYTES_PER_CLUSTER);
     fileInfoArray[i].dataAreaLength = fileInfoArray[i].clustersCount * PFS_BYTES_PER_CLUSTER;
 
     cluster += clustersCount;
