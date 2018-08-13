@@ -16,6 +16,7 @@ static tFileSystemObject fileSystem;
 
 static void pfsReadSector(uint32_t offset, uint8_t *buffer);
 static void pfsReadFatSector(uint8_t fatNumber, uint32_t firstDword, uint32_t offset, uint8_t *buffer);
+static void pfsWriteSector(uint32_t offset, const uint8_t *buffer);
 
 void pfsInitialize(uint8_t filesCount, tFileInfo *fileInfoArray)
 {
@@ -77,12 +78,30 @@ void pfsRead(uint32_t offset, uint32_t count, uint8_t *buffer)
   }
 }
 
+void pfsWrite(uint32_t offset, uint32_t count, const uint8_t *buffer)
+{
+  // Requested array must be aligned to sectors.
+  if (((offset % PFS_BYTES_PER_SECTOR) != 0) || ((count % PFS_BYTES_PER_SECTOR) != 0)) {
+    return;
+  }
+
+  uint32_t sectorsCount = count / PFS_BYTES_PER_SECTOR;
+
+  for (uint32_t i = 0; i < sectorsCount; i++) {
+    pfsWriteSector(offset + (i * PFS_BYTES_PER_SECTOR), buffer);
+  }
+}
+
 uint32_t pfsGetTotalSectorsCount(void)
 {
   return PFS_TOTAL_SECTORS;
 }
 
 __weak void pfsFileReadCallback(uint8_t fileId, uint8_t *buffer, uint32_t offset, uint32_t count)
+{
+}
+
+__weak void pfsFileWriteCallback(uint8_t fileId, const uint8_t *buffer, uint32_t offset, uint32_t count)
 {
 }
 
@@ -175,5 +194,61 @@ static void pfsReadFatSector(uint8_t fatNumber, uint32_t firstDword, uint32_t of
 
       break;
     }
+  }
+}
+
+
+static void pfsWriteSector(uint32_t offset, const uint8_t *buffer)
+{
+  if (offset == 0) {
+    // Keep bootsector unchanged.
+    return;
+  }
+
+  if ((offset >= fileSystem.fat1Offset) && (offset < (fileSystem.fat1Offset + fileSystem.fat1Length))) {
+    // Keep FAT unchanged.
+    return;
+  }
+
+  if ((offset >= fileSystem.fat2Offset) && (offset < (fileSystem.fat2Offset + fileSystem.fat2Length))) {
+    // Keep FAT unchanged.
+  }
+
+  if ((offset >= fileSystem.rootOffset) && (offset < (fileSystem.rootOffset + fileSystem.rootLength))) {
+    offset -= fileSystem.rootOffset;
+
+    uint16_t firstFileInSectorOfRoot = offset / sizeof(tDirectoryRecord);
+    uint16_t filesPerSectorOfRoot = PFS_BYTES_PER_SECTOR / sizeof(tDirectoryRecord);
+
+    for (uint32_t fileIndex = 0; fileIndex < filesPerSectorOfRoot; fileIndex++) {
+      if ((firstFileInSectorOfRoot + fileIndex) >= fileSystem.filesCount) {
+        break;
+      }
+
+      // Only update existing files.
+      if (!directoryRecordIsEmpty(&fileSystem.fileInfoArray[firstFileInSectorOfRoot + fileIndex].directoryRecord)) {
+        // Apply only date/time changes.
+        memcpy(((uint8_t *)&fileSystem.fileInfoArray[firstFileInSectorOfRoot + fileIndex].directoryRecord) + 0x0d,
+               buffer + (sizeof(tDirectoryRecord) * fileIndex) + 0x0d,
+               7);
+        memcpy(((uint8_t *)&fileSystem.fileInfoArray[firstFileInSectorOfRoot + fileIndex].directoryRecord) + 0x16,
+               buffer + (sizeof(tDirectoryRecord) * fileIndex) + 0x16,
+               4);
+      }
+    }
+
+    return;
+  }
+
+  if ((offset >= fileSystem.dataAreaOffset) && (offset < (fileSystem.dataAreaOffset + fileSystem.dataAreaLength))) {
+    for (uint32_t fileIndex = 0; fileIndex < fileSystem.filesCount; fileIndex++) {
+      if ((fileSystem.fileInfoArray[fileIndex].dataAreaOffset <= offset) && (offset < (fileSystem.fileInfoArray[fileIndex].dataAreaOffset + fileSystem.fileInfoArray[fileIndex].dataAreaLength))) {
+        offset -= fileSystem.fileInfoArray[fileIndex].dataAreaOffset;
+        pfsFileWriteCallback(fileSystem.fileInfoArray[fileIndex].id, buffer, offset, PFS_BYTES_PER_SECTOR);
+        return;
+      }
+    }
+
+    return;
   }
 }

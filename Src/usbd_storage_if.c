@@ -279,6 +279,7 @@ int8_t STORAGE_Read_HS(uint8_t lun, uint8_t *buf, uint32_t blk_addr, uint16_t bl
 int8_t STORAGE_Write_HS(uint8_t lun, uint8_t *buf, uint32_t blk_addr, uint16_t blk_len)
 {
   /* USER CODE BEGIN 14 */
+  pfsWrite(blk_addr * STORAGE_BLK_SIZ, STORAGE_BLK_SIZ * blk_len, buf);
   return (USBD_OK);
   /* USER CODE END 14 */
 }

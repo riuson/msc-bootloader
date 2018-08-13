@@ -212,6 +212,25 @@ void pfsFileReadCallback(uint8_t fileId, uint8_t *buffer, uint32_t offset, uint3
   }
 }
 
+void pfsFileWriteCallback(uint8_t fileId, const uint8_t *buffer, uint32_t offset, uint32_t count)
+{
+  switch (fileId) {
+    // readme.txt
+    case 1: {
+      break;
+    }
+
+    // firmware.bin
+    case 2: {
+      break;
+    }
+
+    default: {
+      break;
+    }
+  }
+}
+
 /* USER CODE END 4 */
 
 /**
