@@ -17,6 +17,8 @@ static tFileSystemObject fileSystem;
 static void pfsReadSector(uint32_t offset, uint8_t *buffer);
 static void pfsReadFatSector(uint8_t fatNumber, uint32_t firstDword, uint32_t offset, uint8_t *buffer);
 static void pfsWriteSector(uint32_t offset, const uint8_t *buffer);
+static void pfsReadDataArea(uint32_t offset, uint32_t count, uint8_t *buffer);
+static void pfsWriteDataArea(uint32_t offset, uint32_t count, const uint8_t *buffer);
 
 void pfsInitialize(uint8_t filesCount, tFileInfo *fileInfoArray)
 {
@@ -73,6 +75,12 @@ void pfsRead(uint32_t offset, uint32_t count, uint8_t *buffer)
 
   uint32_t sectorsCount = count / PFS_BYTES_PER_SECTOR;
 
+  // Request to data area
+  if ((offset >= fileSystem.dataAreaOffset) && (offset < (fileSystem.dataAreaOffset + fileSystem.dataAreaLength))) {
+    pfsReadDataArea(offset, count, buffer);
+    return;
+  }
+
   for (uint32_t i = 0; i < sectorsCount; i++) {
     pfsReadSector(offset + (i * PFS_BYTES_PER_SECTOR), buffer);
   }
@@ -86,6 +94,12 @@ void pfsWrite(uint32_t offset, uint32_t count, const uint8_t *buffer)
   }
 
   uint32_t sectorsCount = count / PFS_BYTES_PER_SECTOR;
+
+  // Request to data area
+  if ((offset >= fileSystem.dataAreaOffset) && (offset < (fileSystem.dataAreaOffset + fileSystem.dataAreaLength))) {
+    pfsWriteDataArea(offset, count, buffer);
+    return;
+  }
 
   for (uint32_t i = 0; i < sectorsCount; i++) {
     pfsWriteSector(offset + (i * PFS_BYTES_PER_SECTOR), buffer);
@@ -139,20 +153,6 @@ static void pfsReadSector(uint32_t offset, uint8_t *buffer)
       memcpy(buffer + (sizeof(tDirectoryRecord) * fileIndex),
              &fileSystem.fileInfoArray[firstFileInSectorOfRoot + fileIndex].directoryRecord,
              sizeof(tDirectoryRecord));
-    }
-
-    return;
-  }
-
-  if ((offset >= fileSystem.dataAreaOffset) && (offset < (fileSystem.dataAreaOffset + fileSystem.dataAreaLength))) {
-    memset(buffer, 0, PFS_BYTES_PER_SECTOR);
-
-    for (uint32_t fileIndex = 0; fileIndex < fileSystem.filesCount; fileIndex++) {
-      if ((fileSystem.fileInfoArray[fileIndex].dataAreaOffset <= offset) && (offset < (fileSystem.fileInfoArray[fileIndex].dataAreaOffset + fileSystem.fileInfoArray[fileIndex].dataAreaLength))) {
-        offset -= fileSystem.fileInfoArray[fileIndex].dataAreaOffset;
-        pfsFileReadCallback(fileSystem.fileInfoArray[fileIndex].id, buffer, offset, PFS_BYTES_PER_SECTOR);
-        return;
-      }
     }
 
     return;
@@ -241,16 +241,28 @@ static void pfsWriteSector(uint32_t offset, const uint8_t *buffer)
 
     return;
   }
+}
 
-  if ((offset >= fileSystem.dataAreaOffset) && (offset < (fileSystem.dataAreaOffset + fileSystem.dataAreaLength))) {
-    for (uint32_t fileIndex = 0; fileIndex < fileSystem.filesCount; fileIndex++) {
-      if ((fileSystem.fileInfoArray[fileIndex].dataAreaOffset <= offset) && (offset < (fileSystem.fileInfoArray[fileIndex].dataAreaOffset + fileSystem.fileInfoArray[fileIndex].dataAreaLength))) {
-        offset -= fileSystem.fileInfoArray[fileIndex].dataAreaOffset;
-        pfsFileWriteCallback(fileSystem.fileInfoArray[fileIndex].id, buffer, offset, PFS_BYTES_PER_SECTOR);
-        return;
-      }
+static void pfsReadDataArea(uint32_t offset, uint32_t count, uint8_t *buffer)
+{
+  memset(buffer, 0, PFS_BYTES_PER_SECTOR);
+
+  for (uint32_t fileIndex = 0; fileIndex < fileSystem.filesCount; fileIndex++) {
+    if ((fileSystem.fileInfoArray[fileIndex].dataAreaOffset <= offset) && (offset < (fileSystem.fileInfoArray[fileIndex].dataAreaOffset + fileSystem.fileInfoArray[fileIndex].dataAreaLength))) {
+      offset -= fileSystem.fileInfoArray[fileIndex].dataAreaOffset;
+      pfsFileReadCallback(fileSystem.fileInfoArray[fileIndex].id, buffer, offset, PFS_BYTES_PER_SECTOR);
+      return;
     }
+  }
+}
 
-    return;
+static void pfsWriteDataArea(uint32_t offset, uint32_t count, const uint8_t *buffer)
+{
+  for (uint32_t fileIndex = 0; fileIndex < fileSystem.filesCount; fileIndex++) {
+    if ((fileSystem.fileInfoArray[fileIndex].dataAreaOffset <= offset) && (offset < (fileSystem.fileInfoArray[fileIndex].dataAreaOffset + fileSystem.fileInfoArray[fileIndex].dataAreaLength))) {
+      offset -= fileSystem.fileInfoArray[fileIndex].dataAreaOffset;
+      pfsFileWriteCallback(fileSystem.fileInfoArray[fileIndex].id, buffer, offset, PFS_BYTES_PER_SECTOR);
+      return;
+    }
   }
 }
