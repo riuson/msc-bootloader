@@ -114,14 +114,12 @@ static void pfsReadSector(uint32_t offset, uint8_t *buffer)
 
   if ((offset >= fileSystem.fat1Offset) && (offset < (fileSystem.fat1Offset + fileSystem.fat1Length))) {
     offset -= fileSystem.fat1Offset;
-    memset(buffer, 0, PFS_BYTES_PER_SECTOR);
     pfsReadFatSector(2, fileSystem.fat1FirstDword, offset, buffer);
     return;
   }
 
   if ((offset >= fileSystem.fat2Offset) && (offset < (fileSystem.fat2Offset + fileSystem.fat2Length))) {
     offset -= fileSystem.fat2Offset;
-    memset(buffer, 0, PFS_BYTES_PER_SECTOR);
     pfsReadFatSector(2, fileSystem.fat2FirstDword, offset, buffer);
     return;
   }
@@ -171,6 +169,10 @@ static void pfsReadFatSector(uint8_t fatNumber, uint32_t firstDword, uint32_t of
   uint16_t requestedFatSectorClustersCount = PFS_BYTES_PER_SECTOR / sizeof(uint16_t);
   uint16_t *buffer16 = (uint16_t *)buffer;
   uint16_t bufferIndex = 0;
+
+  for (uint16_t i = 0; i < PFS_BYTES_PER_SECTOR / 2; i++) {
+    ((uint16_t *)buffer)[i] = 0xfff0; // Reserved by default
+  }
 
   if (offset == 0) {
     memcpy(buffer, &firstDword, 4);
