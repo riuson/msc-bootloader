@@ -24,6 +24,6 @@ else
   exit 1;
 fi
 
-$ASTYLE --options=$PROJECT_DIR/Scripts/astyle.conf "$PROJECT_DIR/Middlewares/Riuson/PreudoFileSystem/*.*"
+$ASTYLE --options=$PROJECT_DIR/Scripts/astyle.conf "$PROJECT_DIR/Middlewares/Riuson/*.*"
 
 exit 0

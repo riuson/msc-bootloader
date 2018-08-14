@@ -53,28 +53,14 @@
 #include "gpio.h"
 
 /* USER CODE BEGIN Includes */
-#include "pfs.h"
-#include "readme.h"
+#include "bootloader.h"
 /* USER CODE END Includes */
 
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
 /* Private variables ---------------------------------------------------------*/
-tFileInfo pseudoFiles[] = {
-  {
-    1,
-    { 'R', 'E', 'A', 'D', 'M', 'E', ' ', ' ' },
-    { 'T', 'X', 'T' },
-    0
-  },
-  {
-    2,
-    { 'F', 'I', 'R', 'M', 'W', 'A', 'R', 'E' },
-    { 'B', 'I', 'N' },
-    2u * 1024u * 1024u
-  }
-};
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -97,7 +83,7 @@ void SystemClock_Config(void);
 int main(void)
 {
   /* USER CODE BEGIN 1 */
-
+  bootloaderInit();
   /* USER CODE END 1 */
 
   /* MCU Configuration----------------------------------------------------------*/
@@ -113,8 +99,7 @@ int main(void)
   SystemClock_Config();
 
   /* USER CODE BEGIN SysInit */
-  pseudoFiles[0].size = readme_txt_size;
-  pfsInitialize(2, pseudoFiles);
+
   /* USER CODE END SysInit */
 
   /* Initialize all configured peripherals */
@@ -130,7 +115,7 @@ int main(void)
   {
 
   /* USER CODE END WHILE */
-
+  bootloaderProcess();
   /* USER CODE BEGIN 3 */
 
   }
@@ -196,40 +181,6 @@ void SystemClock_Config(void)
 }
 
 /* USER CODE BEGIN 4 */
-
-void pfsFileReadCallback(uint8_t fileId, uint8_t *buffer, uint32_t offset, uint32_t count)
-{
-  switch (fileId) {
-    // readme.txt
-    case 1: {
-      memcpy(buffer, ((uint8_t *)readme_txt) + offset, ((offset + count) > readme_txt_size) ? readme_txt_size - offset : count);
-      break;
-    }
-
-    default: {
-      break;
-    }
-  }
-}
-
-void pfsFileWriteCallback(uint8_t fileId, const uint8_t *buffer, uint32_t offset, uint32_t count)
-{
-  switch (fileId) {
-    // readme.txt
-    case 1: {
-      break;
-    }
-
-    // firmware.bin
-    case 2: {
-      break;
-    }
-
-    default: {
-      break;
-    }
-  }
-}
 
 /* USER CODE END 4 */
 

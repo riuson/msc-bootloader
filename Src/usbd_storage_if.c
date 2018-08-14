@@ -52,6 +52,7 @@
 
 /* USER CODE BEGIN INCLUDE */
 #include "pfs.h"
+#include "bootloader_conf.h"
 /* USER CODE END INCLUDE */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -208,6 +209,10 @@ USBD_StorageTypeDef USBD_Storage_Interface_fops_HS =
 int8_t STORAGE_Init_HS(uint8_t lun)
 {
   /* USER CODE BEGIN 9 */
+  //if (bootloaderIsBusy() == true) {
+  //  return USBD_BUSY;
+  //}
+
   return (USBD_OK);
   /* USER CODE END 9 */
 }
@@ -224,6 +229,11 @@ int8_t STORAGE_GetCapacity_HS(uint8_t lun, uint32_t *block_num, uint16_t *block_
   /* USER CODE BEGIN 10 */
   *block_num  = STORAGE_BLK_NBR;
   *block_size = STORAGE_BLK_SIZ;
+
+  //if (bootloaderIsBusy() == true) {
+  //  return USBD_BUSY;
+  //}
+
   return (USBD_OK);
   /* USER CODE END 10 */
 }
@@ -236,6 +246,10 @@ int8_t STORAGE_GetCapacity_HS(uint8_t lun, uint32_t *block_num, uint16_t *block_
 int8_t STORAGE_IsReady_HS(uint8_t lun)
 {
   /* USER CODE BEGIN 11 */
+  if (bootloaderIsBusy() == true) {
+    return USBD_BUSY;
+  }
+
   return (USBD_OK);
   /* USER CODE END 11 */
 }
@@ -248,6 +262,10 @@ int8_t STORAGE_IsReady_HS(uint8_t lun)
 int8_t STORAGE_IsWriteProtected_HS(uint8_t lun)
 {
   /* USER CODE BEGIN 12 */
+  //if (bootloaderIsBusy() == true) {
+  //  return USBD_BUSY;
+  //}
+
   return (USBD_OK);
   /* USER CODE END 12 */
 }
@@ -263,6 +281,10 @@ int8_t STORAGE_IsWriteProtected_HS(uint8_t lun)
 int8_t STORAGE_Read_HS(uint8_t lun, uint8_t *buf, uint32_t blk_addr, uint16_t blk_len)
 {
   /* USER CODE BEGIN 13 */
+  if (bootloaderIsBusy() == true) {
+    return USBD_BUSY;
+  }
+
   pfsRead(blk_addr * STORAGE_BLK_SIZ, STORAGE_BLK_SIZ * blk_len, buf);
   return (USBD_OK);
   /* USER CODE END 13 */
@@ -279,6 +301,10 @@ int8_t STORAGE_Read_HS(uint8_t lun, uint8_t *buf, uint32_t blk_addr, uint16_t bl
 int8_t STORAGE_Write_HS(uint8_t lun, uint8_t *buf, uint32_t blk_addr, uint16_t blk_len)
 {
   /* USER CODE BEGIN 14 */
+  if (bootloaderIsBusy() == true) {
+    return USBD_BUSY;
+  }
+
   pfsWrite(blk_addr * STORAGE_BLK_SIZ, STORAGE_BLK_SIZ * blk_len, buf);
   return (USBD_OK);
   /* USER CODE END 14 */
@@ -292,6 +318,10 @@ int8_t STORAGE_Write_HS(uint8_t lun, uint8_t *buf, uint32_t blk_addr, uint16_t b
 int8_t STORAGE_GetMaxLun_HS(void)
 {
   /* USER CODE BEGIN 15 */
+  //if (bootloaderIsBusy() == true) {
+  //  return USBD_BUSY;
+  //}
+
   return (STORAGE_LUN_NBR - 1);
   /* USER CODE END 15 */
 }
