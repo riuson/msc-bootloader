@@ -33,9 +33,12 @@ typedef struct tBootloaderData {
   uint32_t blockLength;
   bool isFlashPrepared;
   bool isWritingStarted;
+  USBD_HandleTypeDef *pDev;
 } BootloaderData;
 
 static BootloaderData bootloaderData;
+
+extern void SCSI_ProcessWriteCompleted(USBD_HandleTypeDef  *pdev);
 
 void bootloaderInit(void)
 {
@@ -114,23 +117,24 @@ __weak bool bootloaderPrepareFimrwareArea(void)
   return true;
 }
 
-__weak bool bootloaderReadFirmware(uint8_t *buffer, uint32_t offset, uint32_t count)
+__weak bool bootloaderReadFirmware(USBD_HandleTypeDef  *pdev, uint8_t *buffer, uint32_t offset, uint32_t count)
 {
   memcpy(buffer, (const uint8_t *)(BOOTLOADER_FW_AREA_START + offset), count);
   return true;
 }
 
-__weak bool bootloaderWriteFirmware(const uint8_t *buffer, uint32_t offset, uint32_t count)
+__weak bool bootloaderWriteFirmware(USBD_HandleTypeDef  *pdev, const uint8_t *buffer, uint32_t offset, uint32_t count)
 {
   memcpy(bootloaderData.blockBuffer, buffer, count);
   bootloaderData.blockAddress = offset;
   bootloaderData.blockLength = count;
+  bootloaderData.pDev = pdev;
   bootloaderData.isWritingStarted = true;
-  return true;
+  return false;
 }
 
 
-void pfsFileReadCallback(uint8_t fileId, uint8_t *buffer, uint32_t offset, uint32_t count)
+bool pfsFileReadCallback(USBD_HandleTypeDef  *pdev, uint8_t fileId, uint8_t *buffer, uint32_t offset, uint32_t count)
 {
   switch (fileId) {
     // readme.txt
@@ -142,29 +146,31 @@ void pfsFileReadCallback(uint8_t fileId, uint8_t *buffer, uint32_t offset, uint3
     }
 
     case 2: {
-      bootloaderReadFirmware(buffer, offset, count);
-      break;
+      return bootloaderReadFirmware(pdev, buffer, offset, count);
     }
 
     default: {
       break;
     }
   }
+
+  return true;
 }
 
-void pfsFileWriteCallback(uint8_t fileId, const uint8_t *buffer, uint32_t offset, uint32_t count)
+bool pfsFileWriteCallback(USBD_HandleTypeDef  *pdev, uint8_t fileId, const uint8_t *buffer, uint32_t offset, uint32_t count)
 {
   switch (fileId) {
     // firmware.bin
     case 2: {
-      bootloaderWriteFirmware(buffer, offset, count);
-      break;
+      return bootloaderWriteFirmware(pdev, buffer, offset, count);
     }
 
     default: {
       break;
     }
   }
+
+  return true;
 }
 
 void bootloaderProcess()
@@ -185,6 +191,8 @@ void bootloaderProcess()
     }
 
     HAL_Delay(100);
+
+    SCSI_ProcessWriteCompleted(bootloaderData.pDev);
 
     bootloaderData.isWritingStarted = false;
   }
