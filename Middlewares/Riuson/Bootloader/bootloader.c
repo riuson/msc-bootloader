@@ -170,19 +170,21 @@ void pfsFileWriteCallback(uint8_t fileId, const uint8_t *buffer, uint32_t offset
 void bootloaderProcess()
 {
   if (bootloaderData.isWritingStarted == true) {
-    if (bootloaderData.isFlashPrepared == false) {
-      bootloaderPrepareFimrwareArea();
-      bootloaderData.isFlashPrepared = true;
-    }
+    //if (bootloaderData.isFlashPrepared == false) {
+    //  bootloaderPrepareFimrwareArea();
+    //  bootloaderData.isFlashPrepared = true;
+    //}
 
     for (uint32_t itemIndex = 0u; itemIndex < bootloaderData.blockLength; itemIndex += 4u) {
       const uint32_t *value = (const uint32_t *)&bootloaderData.blockBuffer[itemIndex];
 
-      if (HAL_FLASH_Program(FLASH_TYPEPROGRAM_WORD, BOOTLOADER_FW_AREA_START + bootloaderData.blockAddress + itemIndex, (*value)) != HAL_OK) {
-        bootloaderData.isWritingStarted = false;
-        return false;
-      }
+      //if (HAL_FLASH_Program(FLASH_TYPEPROGRAM_WORD, BOOTLOADER_FW_AREA_START + bootloaderData.blockAddress + itemIndex, (*value)) != HAL_OK) {
+      //  bootloaderData.isWritingStarted = false;
+      //  return false;
+      //}
     }
+
+    HAL_Delay(100);
 
     bootloaderData.isWritingStarted = false;
   }
