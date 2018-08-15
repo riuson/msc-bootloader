@@ -52,7 +52,7 @@
 
 /* USER CODE BEGIN INCLUDE */
 #include "pfs.h"
-#include "bootloader_conf.h"
+#include "bootloader.h"
 /* USER CODE END INCLUDE */
 
 /* Private typedef -----------------------------------------------------------*/

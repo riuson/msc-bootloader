@@ -27,17 +27,24 @@ static tFileInfo pseudoFiles[] = {
   }
 };
 
+typedef enum tLongOperation {
+  LongOpNone,
+  LongOpRead,
+  LongOpWrite
+} LongOperation;
+
 typedef struct tBootloaderData {
   uint8_t blockBuffer[512];
   uint32_t blockAddress;
   uint32_t blockLength;
   bool isFlashPrepared;
-  bool isWritingStarted;
   USBD_HandleTypeDef *pDev;
+  LongOperation operation;
 } BootloaderData;
 
 static BootloaderData bootloaderData;
 
+extern void SCSI_ProcessReadCompleted(USBD_HandleTypeDef  *pdev, const uint8_t *buffer, uint16_t length);
 extern void SCSI_ProcessWriteCompleted(USBD_HandleTypeDef  *pdev);
 
 void bootloaderInit(void)
@@ -49,7 +56,7 @@ void bootloaderInit(void)
   }
 
   bootloaderData.isFlashPrepared = false;
-  bootloaderData.isWritingStarted = false;
+  bootloaderData.operation = LongOpNone;
 
   pseudoFiles[0].size = readme_txt_size;
   pfsInitialize(2, pseudoFiles);
@@ -119,8 +126,11 @@ __weak bool bootloaderPrepareFimrwareArea(void)
 
 __weak bool bootloaderReadFirmware(USBD_HandleTypeDef  *pdev, uint8_t *buffer, uint32_t offset, uint32_t count)
 {
-  memcpy(buffer, (const uint8_t *)(BOOTLOADER_FW_AREA_START + offset), count);
-  return true;
+  bootloaderData.blockAddress = offset;
+  bootloaderData.blockLength = count;
+  bootloaderData.pDev = pdev;
+  bootloaderData.operation = LongOpRead;
+  return false;
 }
 
 __weak bool bootloaderWriteFirmware(USBD_HandleTypeDef  *pdev, const uint8_t *buffer, uint32_t offset, uint32_t count)
@@ -129,7 +139,7 @@ __weak bool bootloaderWriteFirmware(USBD_HandleTypeDef  *pdev, const uint8_t *bu
   bootloaderData.blockAddress = offset;
   bootloaderData.blockLength = count;
   bootloaderData.pDev = pdev;
-  bootloaderData.isWritingStarted = true;
+  bootloaderData.operation = LongOpWrite;
   return false;
 }
 
@@ -175,32 +185,48 @@ bool pfsFileWriteCallback(USBD_HandleTypeDef  *pdev, uint8_t fileId, const uint8
 
 void bootloaderProcess()
 {
-  if (bootloaderData.isWritingStarted == true) {
-    //if (bootloaderData.isFlashPrepared == false) {
-    //  bootloaderPrepareFimrwareArea();
-    //  bootloaderData.isFlashPrepared = true;
-    //}
-
-    for (uint32_t itemIndex = 0u; itemIndex < bootloaderData.blockLength; itemIndex += 4u) {
-      const uint32_t *value = (const uint32_t *)&bootloaderData.blockBuffer[itemIndex];
-
-      //if (HAL_FLASH_Program(FLASH_TYPEPROGRAM_WORD, BOOTLOADER_FW_AREA_START + bootloaderData.blockAddress + itemIndex, (*value)) != HAL_OK) {
-      //  bootloaderData.isWritingStarted = false;
-      //  return false;
-      //}
+  switch (bootloaderData.operation) {
+    case LongOpNone:
+    default: {
+      break;
     }
 
-    HAL_Delay(100);
+    case LongOpRead: {
+      memcpy(bootloaderData.blockBuffer, (const uint8_t *)(BOOTLOADER_FW_AREA_START + bootloaderData.blockAddress), bootloaderData.blockLength);
+      HAL_Delay(1);
+      SCSI_ProcessReadCompleted(bootloaderData.pDev, bootloaderData.blockBuffer, bootloaderData.blockLength);
+      bootloaderData.operation = LongOpNone;
+      break;
+    }
 
-    SCSI_ProcessWriteCompleted(bootloaderData.pDev);
+    case LongOpWrite: {
+      //if (bootloaderData.isFlashPrepared == false) {
+      //  bootloaderPrepareFimrwareArea();
+      //  bootloaderData.isFlashPrepared = true;
+      //}
 
-    bootloaderData.isWritingStarted = false;
+      for (uint32_t itemIndex = 0u; itemIndex < bootloaderData.blockLength; itemIndex += 4u) {
+        const uint32_t *value = (const uint32_t *)&bootloaderData.blockBuffer[itemIndex];
+
+        //if (HAL_FLASH_Program(FLASH_TYPEPROGRAM_WORD, BOOTLOADER_FW_AREA_START + bootloaderData.blockAddress + itemIndex, (*value)) != HAL_OK) {
+        //  bootloaderData.isWritingStarted = false;
+        //  return false;
+        //}
+      }
+
+      HAL_Delay(1);
+
+      SCSI_ProcessWriteCompleted(bootloaderData.pDev);
+
+      bootloaderData.operation = LongOpNone;
+      break;
+    }
   }
 }
 
 bool bootloaderIsBusy()
 {
-  return bootloaderData.isWritingStarted;
+  return (bootloaderData.operation != LongOpNone ? true : false);
 }
 
 #define ADDR_FLASH_SECTOR_0     ((uint32_t)0x08000000) /* Base @ of Sector 0, 16 Kbytes */
