@@ -193,31 +193,27 @@ void bootloaderProcess()
 
     case LongOpRead: {
       memcpy(bootloaderData.blockBuffer, (const uint8_t *)(BOOTLOADER_FW_AREA_START + bootloaderData.blockAddress), bootloaderData.blockLength);
-      HAL_Delay(1);
       SCSI_ProcessReadCompleted(bootloaderData.pDev, bootloaderData.blockBuffer, bootloaderData.blockLength);
       bootloaderData.operation = LongOpNone;
       break;
     }
 
     case LongOpWrite: {
-      //if (bootloaderData.isFlashPrepared == false) {
-      //  bootloaderPrepareFimrwareArea();
-      //  bootloaderData.isFlashPrepared = true;
-      //}
+      if (bootloaderData.isFlashPrepared == false) {
+        bootloaderPrepareFimrwareArea();
+        bootloaderData.isFlashPrepared = true;
+      }
 
       for (uint32_t itemIndex = 0u; itemIndex < bootloaderData.blockLength; itemIndex += 4u) {
         const uint32_t *value = (const uint32_t *)&bootloaderData.blockBuffer[itemIndex];
 
-        //if (HAL_FLASH_Program(FLASH_TYPEPROGRAM_WORD, BOOTLOADER_FW_AREA_START + bootloaderData.blockAddress + itemIndex, (*value)) != HAL_OK) {
-        //  bootloaderData.isWritingStarted = false;
-        //  return false;
-        //}
+        if (HAL_FLASH_Program(FLASH_TYPEPROGRAM_WORD, BOOTLOADER_FW_AREA_START + bootloaderData.blockAddress + itemIndex, (*value)) != HAL_OK) {
+          bootloaderData.operation = LongOpNone;
+          return;
+        }
       }
 
-      HAL_Delay(1);
-
       SCSI_ProcessWriteCompleted(bootloaderData.pDev);
-
       bootloaderData.operation = LongOpNone;
       break;
     }
