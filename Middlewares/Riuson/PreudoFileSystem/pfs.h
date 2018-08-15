@@ -16,7 +16,9 @@ void pfsInitialize(uint8_t filesCount, tFileInfo *fileInfoArray);
 bool pfsRead(USBD_HandleTypeDef  *pdev, uint32_t offset, uint32_t count, uint8_t *buffer);
 bool pfsWrite(USBD_HandleTypeDef  *pdev, uint32_t offset, uint32_t count, const uint8_t *buffer);
 uint32_t pfsGetTotalSectorsCount(void);
-bool pfsFileReadCallback(USBD_HandleTypeDef  *pdev, uint8_t fileId, uint8_t *buffer, uint32_t offset, uint32_t count);
-bool pfsFileWriteCallback(USBD_HandleTypeDef  *pdev, uint8_t fileId, const uint8_t *buffer, uint32_t offset, uint32_t count);
+void pfsFileReadCallback(uint8_t fileId, uint8_t *buffer, uint32_t offset, uint32_t count);
+void pfsFileWriteCallback(uint8_t fileId, const uint8_t *buffer, uint32_t offset, uint32_t count);
+void pfsProcessLongOps();
+bool pfsIsBusy();
 
 #endif /* RIUSON_PREUDOFILESYSTEM_PFS_H_ */

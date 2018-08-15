@@ -53,6 +53,7 @@
 #include "gpio.h"
 
 /* USER CODE BEGIN Includes */
+#include "pfs.h"
 #include "bootloader.h"
 /* USER CODE END Includes */
 
@@ -115,7 +116,7 @@ int main(void)
   {
 
   /* USER CODE END WHILE */
-  bootloaderProcess();
+    pfsProcessLongOps();
   /* USER CODE BEGIN 3 */
 
   }

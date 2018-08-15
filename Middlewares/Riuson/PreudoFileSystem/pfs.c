@@ -12,13 +12,33 @@
 #include "pfs_file_system_object.h"
 #include <string.h>
 
+
+typedef enum tLongOperation {
+  LongOpNone,
+  LongOpRead,
+  LongOpWrite
+} LongOperation;
+
+typedef struct tLongOpsData {
+  uint8_t blockBuffer[512];
+  uint8_t fileId;
+  uint32_t blockAddress;
+  uint32_t blockLength;
+  USBD_HandleTypeDef *pDev;
+  LongOperation operation;
+} LongOpsData;
+
 static tFileSystemObject fileSystem;
+static LongOpsData longOpsData;
 
 static void pfsReadSector(uint32_t offset, uint8_t *buffer);
 static void pfsReadFatSector(uint8_t fatNumber, uint32_t firstDword, uint32_t offset, uint8_t *buffer);
 static void pfsWriteSector(uint32_t offset, const uint8_t *buffer);
 static bool pfsReadDataArea(USBD_HandleTypeDef  *pdev, uint32_t offset, uint32_t count, uint8_t *buffer);
 static bool pfsWriteDataArea(USBD_HandleTypeDef  *pdev, uint32_t offset, uint32_t count, const uint8_t *buffer);
+
+extern void SCSI_ProcessReadCompleted(USBD_HandleTypeDef  *pdev, const uint8_t *buffer, uint16_t length);
+extern void SCSI_ProcessWriteCompleted(USBD_HandleTypeDef  *pdev);
 
 void pfsInitialize(uint8_t filesCount, tFileInfo *fileInfoArray)
 {
@@ -64,6 +84,8 @@ void pfsInitialize(uint8_t filesCount, tFileInfo *fileInfoArray)
   fileSystem.fat1FirstDword = fileSystem.fat2FirstDword = 0xfffffff8ul;
   fileSystem.rootOffset = fileSystem.fat2Offset + fileSystem.fat2Length;
   fileSystem.rootLength = PFS_ROOT_ENTRIES * sizeof(tDirectoryRecord);
+
+  longOpsData.operation = LongOpNone;
 }
 
 bool pfsRead(USBD_HandleTypeDef  *pdev, uint32_t offset, uint32_t count, uint8_t *buffer)
@@ -113,11 +135,11 @@ uint32_t pfsGetTotalSectorsCount(void)
   return PFS_TOTAL_SECTORS;
 }
 
-__weak bool pfsFileReadCallback(USBD_HandleTypeDef  *pdev, uint8_t fileId, uint8_t *buffer, uint32_t offset, uint32_t count)
+__weak void pfsFileReadCallback(uint8_t fileId, uint8_t *buffer, uint32_t offset, uint32_t count)
 {
 }
 
-__weak bool pfsFileWriteCallback(USBD_HandleTypeDef  *pdev, uint8_t fileId, const uint8_t *buffer, uint32_t offset, uint32_t count)
+__weak void pfsFileWriteCallback(uint8_t fileId, const uint8_t *buffer, uint32_t offset, uint32_t count)
 {
 }
 
@@ -201,7 +223,6 @@ static void pfsReadFatSector(uint8_t fatNumber, uint32_t firstDword, uint32_t of
   }
 }
 
-
 static void pfsWriteSector(uint32_t offset, const uint8_t *buffer)
 {
   if (offset == 0) {
@@ -247,26 +268,66 @@ static void pfsWriteSector(uint32_t offset, const uint8_t *buffer)
 
 static bool pfsReadDataArea(USBD_HandleTypeDef  *pdev, uint32_t offset, uint32_t count, uint8_t *buffer)
 {
-  memset(buffer, 0, PFS_BYTES_PER_SECTOR);
+  for (uint32_t fileIndex = 0; fileIndex < fileSystem.filesCount; fileIndex++) {
+    if ((fileSystem.fileInfoArray[fileIndex].dataAreaOffset <= offset) && (offset < (fileSystem.fileInfoArray[fileIndex].dataAreaOffset + fileSystem.fileInfoArray[fileIndex].dataAreaLength))) {
+      offset -= fileSystem.fileInfoArray[fileIndex].dataAreaOffset;
+      longOpsData.blockAddress = offset;
+      longOpsData.blockLength = count;
+      longOpsData.pDev = pdev;
+      longOpsData.fileId = fileSystem.fileInfoArray[fileIndex].id;
+      longOpsData.operation = LongOpRead;
+      return false;
+    }
+  }
+
+  memset(buffer, 0, count);
+  return true;
+}
+
+static bool pfsWriteDataArea(USBD_HandleTypeDef  *pdev, uint32_t offset, uint32_t count, const uint8_t *buffer)
+{
 
   for (uint32_t fileIndex = 0; fileIndex < fileSystem.filesCount; fileIndex++) {
     if ((fileSystem.fileInfoArray[fileIndex].dataAreaOffset <= offset) && (offset < (fileSystem.fileInfoArray[fileIndex].dataAreaOffset + fileSystem.fileInfoArray[fileIndex].dataAreaLength))) {
       offset -= fileSystem.fileInfoArray[fileIndex].dataAreaOffset;
-      return pfsFileReadCallback(pdev, fileSystem.fileInfoArray[fileIndex].id, buffer, offset, PFS_BYTES_PER_SECTOR);
+      memcpy(longOpsData.blockBuffer, buffer, count);
+      longOpsData.blockAddress = offset;
+      longOpsData.blockLength = count;
+      longOpsData.pDev = pdev;
+      longOpsData.fileId = fileSystem.fileInfoArray[fileIndex].id;
+      longOpsData.operation = LongOpWrite;
+      return false;
     }
   }
 
   return true;
 }
 
-static bool pfsWriteDataArea(USBD_HandleTypeDef  *pdev, uint32_t offset, uint32_t count, const uint8_t *buffer)
+void pfsProcessLongOps()
 {
-  for (uint32_t fileIndex = 0; fileIndex < fileSystem.filesCount; fileIndex++) {
-    if ((fileSystem.fileInfoArray[fileIndex].dataAreaOffset <= offset) && (offset < (fileSystem.fileInfoArray[fileIndex].dataAreaOffset + fileSystem.fileInfoArray[fileIndex].dataAreaLength))) {
-      offset -= fileSystem.fileInfoArray[fileIndex].dataAreaOffset;
-      return pfsFileWriteCallback(pdev, fileSystem.fileInfoArray[fileIndex].id, buffer, offset, PFS_BYTES_PER_SECTOR);
+  switch (longOpsData.operation) {
+    case LongOpNone:
+    default: {
+      break;
+    }
+
+    case LongOpRead: {
+      pfsFileReadCallback(longOpsData.fileId, longOpsData.blockBuffer, longOpsData.blockAddress, longOpsData.blockLength);
+      SCSI_ProcessReadCompleted(longOpsData.pDev, longOpsData.blockBuffer, longOpsData.blockLength);
+      longOpsData.operation = LongOpNone;
+      break;
+    }
+
+    case LongOpWrite: {
+      pfsFileWriteCallback(longOpsData.fileId, longOpsData.blockBuffer, longOpsData.blockAddress, longOpsData.blockLength);
+      SCSI_ProcessWriteCompleted(longOpsData.pDev);
+      longOpsData.operation = LongOpNone;
+      break;
     }
   }
+}
 
-  return true;
+bool pfsIsBusy()
+{
+  return (longOpsData.operation != LongOpNone ? true : false);
 }

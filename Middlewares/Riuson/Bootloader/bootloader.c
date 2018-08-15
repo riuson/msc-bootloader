@@ -27,19 +27,8 @@ static tFileInfo pseudoFiles[] = {
   }
 };
 
-typedef enum tLongOperation {
-  LongOpNone,
-  LongOpRead,
-  LongOpWrite
-} LongOperation;
-
 typedef struct tBootloaderData {
-  uint8_t blockBuffer[512];
-  uint32_t blockAddress;
-  uint32_t blockLength;
   bool isFlashPrepared;
-  USBD_HandleTypeDef *pDev;
-  LongOperation operation;
 } BootloaderData;
 
 static BootloaderData bootloaderData;
@@ -56,7 +45,6 @@ void bootloaderInit(void)
   }
 
   bootloaderData.isFlashPrepared = false;
-  bootloaderData.operation = LongOpNone;
 
   pseudoFiles[0].size = readme_txt_size;
   pfsInitialize(2, pseudoFiles);
@@ -124,27 +112,7 @@ __weak bool bootloaderPrepareFimrwareArea(void)
   return true;
 }
 
-__weak bool bootloaderReadFirmware(USBD_HandleTypeDef  *pdev, uint8_t *buffer, uint32_t offset, uint32_t count)
-{
-  bootloaderData.blockAddress = offset;
-  bootloaderData.blockLength = count;
-  bootloaderData.pDev = pdev;
-  bootloaderData.operation = LongOpRead;
-  return false;
-}
-
-__weak bool bootloaderWriteFirmware(USBD_HandleTypeDef  *pdev, const uint8_t *buffer, uint32_t offset, uint32_t count)
-{
-  memcpy(bootloaderData.blockBuffer, buffer, count);
-  bootloaderData.blockAddress = offset;
-  bootloaderData.blockLength = count;
-  bootloaderData.pDev = pdev;
-  bootloaderData.operation = LongOpWrite;
-  return false;
-}
-
-
-bool pfsFileReadCallback(USBD_HandleTypeDef  *pdev, uint8_t fileId, uint8_t *buffer, uint32_t offset, uint32_t count)
+void pfsFileReadCallback(uint8_t fileId, uint8_t *buffer, uint32_t offset, uint32_t count)
 {
   switch (fileId) {
     // readme.txt
@@ -156,73 +124,41 @@ bool pfsFileReadCallback(USBD_HandleTypeDef  *pdev, uint8_t fileId, uint8_t *buf
     }
 
     case 2: {
-      return bootloaderReadFirmware(pdev, buffer, offset, count);
+      memcpy(buffer, (const uint8_t *)(BOOTLOADER_FW_AREA_START + offset), count);
+      break;
     }
 
     default: {
       break;
     }
   }
-
-  return true;
 }
 
-bool pfsFileWriteCallback(USBD_HandleTypeDef  *pdev, uint8_t fileId, const uint8_t *buffer, uint32_t offset, uint32_t count)
+void pfsFileWriteCallback(uint8_t fileId, const uint8_t *buffer, uint32_t offset, uint32_t count)
 {
   switch (fileId) {
     // firmware.bin
     case 2: {
-      return bootloaderWriteFirmware(pdev, buffer, offset, count);
-    }
-
-    default: {
-      break;
-    }
-  }
-
-  return true;
-}
-
-void bootloaderProcess()
-{
-  switch (bootloaderData.operation) {
-    case LongOpNone:
-    default: {
-      break;
-    }
-
-    case LongOpRead: {
-      memcpy(bootloaderData.blockBuffer, (const uint8_t *)(BOOTLOADER_FW_AREA_START + bootloaderData.blockAddress), bootloaderData.blockLength);
-      SCSI_ProcessReadCompleted(bootloaderData.pDev, bootloaderData.blockBuffer, bootloaderData.blockLength);
-      bootloaderData.operation = LongOpNone;
-      break;
-    }
-
-    case LongOpWrite: {
       if (bootloaderData.isFlashPrepared == false) {
         bootloaderPrepareFimrwareArea();
         bootloaderData.isFlashPrepared = true;
       }
 
-      for (uint32_t itemIndex = 0u; itemIndex < bootloaderData.blockLength; itemIndex += 4u) {
-        const uint32_t *value = (const uint32_t *)&bootloaderData.blockBuffer[itemIndex];
+      for (uint32_t itemIndex = 0u; itemIndex < count; itemIndex += 4u) {
+        const uint32_t *value = (const uint32_t *)&buffer[itemIndex];
 
-        if (HAL_FLASH_Program(FLASH_TYPEPROGRAM_WORD, BOOTLOADER_FW_AREA_START + bootloaderData.blockAddress + itemIndex, (*value)) != HAL_OK) {
-          bootloaderData.operation = LongOpNone;
+        if (HAL_FLASH_Program(FLASH_TYPEPROGRAM_WORD, BOOTLOADER_FW_AREA_START + offset + itemIndex, (*value)) != HAL_OK) {
           return;
         }
       }
 
-      SCSI_ProcessWriteCompleted(bootloaderData.pDev);
-      bootloaderData.operation = LongOpNone;
+      break;
+    }
+
+    default: {
       break;
     }
   }
-}
-
-bool bootloaderIsBusy()
-{
-  return (bootloaderData.operation != LongOpNone ? true : false);
 }
 
 #define ADDR_FLASH_SECTOR_0     ((uint32_t)0x08000000) /* Base @ of Sector 0, 16 Kbytes */
