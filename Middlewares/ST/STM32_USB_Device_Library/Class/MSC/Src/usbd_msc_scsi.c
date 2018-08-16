@@ -672,10 +672,15 @@ static int8_t SCSI_ProcessRead (USBD_HandleTypeDef  *pdev, uint8_t lun)
   
   len = MIN(hmsc->scsi_blk_len , MSC_MEDIA_PACKET); 
   
-  if( ((USBD_StorageTypeDef *)pdev->pUserData)->Read(lun ,
-                              hmsc->bot_data, 
-                              hmsc->scsi_blk_addr / hmsc->scsi_blk_size, 
-                              len / hmsc->scsi_blk_size) < 0)
+  int8_t readResult =
+    ((USBD_StorageTypeDef *)pdev->pUserData)->Read(
+      pdev,
+      lun,
+      hmsc->bot_data,
+      hmsc->scsi_blk_addr / hmsc->scsi_blk_size,
+      len / hmsc->scsi_blk_size);
+
+  if(readResult < 0)
   {
     
     SCSI_SenseCode(pdev,
@@ -684,7 +689,10 @@ static int8_t SCSI_ProcessRead (USBD_HandleTypeDef  *pdev, uint8_t lun)
                    UNRECOVERED_READ_ERROR);
     return -1; 
   }
-  
+
+  if (readResult == USBD_BUSY) {
+    return 0;
+  }
   
   USBD_LL_Transmit (pdev, 
              MSC_EPIN_ADDR,
@@ -705,6 +713,33 @@ static int8_t SCSI_ProcessRead (USBD_HandleTypeDef  *pdev, uint8_t lun)
   return 0;
 }
 
+void SCSI_ProcessReadCompleted(USBD_HandleTypeDef  *pdev, const uint8_t *buffer, uint16_t length)
+{
+  USBD_MSC_BOT_HandleTypeDef  *hmsc = (USBD_MSC_BOT_HandleTypeDef*)pdev->pClassData;
+  uint32_t len;
+
+  memcpy(hmsc->bot_data, buffer, length);
+
+  len = MIN(hmsc->scsi_blk_len , MSC_MEDIA_PACKET);
+
+  USBD_LL_Transmit (pdev,
+             MSC_EPIN_ADDR,
+             hmsc->bot_data,
+             len);
+
+
+  hmsc->scsi_blk_addr   += len;
+  hmsc->scsi_blk_len    -= len;
+
+  /* case 6 : Hi = Di */
+  hmsc->csw.dDataResidue -= len;
+
+  if (hmsc->scsi_blk_len == 0)
+  {
+    hmsc->bot_state = USBD_BOT_LAST_DATA_IN;
+  }
+}
+
 /**
 * @brief  SCSI_ProcessWrite
 *         Handle Write Process
@@ -719,10 +754,15 @@ static int8_t SCSI_ProcessWrite (USBD_HandleTypeDef  *pdev, uint8_t lun)
   
   len = MIN(hmsc->scsi_blk_len , MSC_MEDIA_PACKET); 
   
-  if(((USBD_StorageTypeDef *)pdev->pUserData)->Write(lun ,
-                              hmsc->bot_data, 
-                              hmsc->scsi_blk_addr / hmsc->scsi_blk_size, 
-                              len / hmsc->scsi_blk_size) < 0)
+  int8_t writeResult =
+    ((USBD_StorageTypeDef *)pdev->pUserData)->Write(
+      pdev,
+      lun,
+      hmsc->bot_data,
+      hmsc->scsi_blk_addr / hmsc->scsi_blk_size,
+      len / hmsc->scsi_blk_size);
+
+  if (writeResult < 0)
   {
     SCSI_SenseCode(pdev,
                    lun, 
@@ -731,6 +771,9 @@ static int8_t SCSI_ProcessWrite (USBD_HandleTypeDef  *pdev, uint8_t lun)
     return -1; 
   }
   
+  if (writeResult == USBD_BUSY) {
+    return 0;
+  }
   
   hmsc->scsi_blk_addr  += len; 
   hmsc->scsi_blk_len   -= len; 
@@ -752,6 +795,33 @@ static int8_t SCSI_ProcessWrite (USBD_HandleTypeDef  *pdev, uint8_t lun)
   }
   
   return 0;
+}
+
+void SCSI_ProcessWriteCompleted(USBD_HandleTypeDef  *pdev)
+{
+  uint32_t len;
+  USBD_MSC_BOT_HandleTypeDef  *hmsc = (USBD_MSC_BOT_HandleTypeDef*) pdev->pClassData;
+
+  len = MIN(hmsc->scsi_blk_len , MSC_MEDIA_PACKET);
+
+  hmsc->scsi_blk_addr  += len;
+  hmsc->scsi_blk_len   -= len;
+
+  /* case 12 : Ho = Do */
+  hmsc->csw.dDataResidue -= len;
+
+  if (hmsc->scsi_blk_len == 0)
+  {
+    MSC_BOT_SendCSW (pdev, USBD_CSW_CMD_PASSED);
+  }
+  else
+  {
+    /* Prepare EP to Receive next packet */
+    USBD_LL_PrepareReceive (pdev,
+                            MSC_EPOUT_ADDR,
+                            hmsc->bot_data,
+                            MIN (hmsc->scsi_blk_len, MSC_MEDIA_PACKET));
+  }
 }
 /**
   * @}

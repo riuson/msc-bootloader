@@ -10,14 +10,15 @@
 
 #include <stdbool.h>
 #include <stdint.h>
+#include <usbd_def.h>
 
 void bootloaderInit(void);
 bool bootloaderIsFirmwarePresent(void);
 bool bootloaderIsManualStartRequired(void);
 void bootloaderRunFirmware(void);
 bool bootloaderPrepareFimrwareArea(void);
-bool bootloaderReadFirmware(uint8_t *buffer, uint32_t offset, uint32_t count);
-bool bootloaderWriteFirmware(const uint8_t *buffer, uint32_t offset, uint32_t count);
+bool bootloaderReadFirmware(USBD_HandleTypeDef  *pdev, uint8_t *buffer, uint32_t offset, uint32_t count);
+bool bootloaderWriteFirmware(USBD_HandleTypeDef  *pdev, const uint8_t *buffer, uint32_t offset, uint32_t count);
 void bootloaderProcess();
 bool bootloaderIsBusy();
 

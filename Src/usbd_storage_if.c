@@ -52,7 +52,7 @@
 
 /* USER CODE BEGIN INCLUDE */
 #include "pfs.h"
-#include "bootloader_conf.h"
+#include "bootloader.h"
 /* USER CODE END INCLUDE */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -175,8 +175,8 @@ static int8_t STORAGE_Init_HS(uint8_t lun);
 static int8_t STORAGE_GetCapacity_HS(uint8_t lun, uint32_t *block_num, uint16_t *block_size);
 static int8_t STORAGE_IsReady_HS(uint8_t lun);
 static int8_t STORAGE_IsWriteProtected_HS(uint8_t lun);
-static int8_t STORAGE_Read_HS(uint8_t lun, uint8_t *buf, uint32_t blk_addr, uint16_t blk_len);
-static int8_t STORAGE_Write_HS(uint8_t lun, uint8_t *buf, uint32_t blk_addr, uint16_t blk_len);
+static int8_t STORAGE_Read_HS(USBD_HandleTypeDef  *pdev, uint8_t lun, uint8_t *buf, uint32_t blk_addr, uint16_t blk_len);
+static int8_t STORAGE_Write_HS(USBD_HandleTypeDef  *pdev, uint8_t lun, uint8_t *buf, uint32_t blk_addr, uint16_t blk_len);
 static int8_t STORAGE_GetMaxLun_HS(void);
 
 /* USER CODE BEGIN PRIVATE_FUNCTIONS_DECLARATION */
@@ -209,7 +209,7 @@ USBD_StorageTypeDef USBD_Storage_Interface_fops_HS =
 int8_t STORAGE_Init_HS(uint8_t lun)
 {
   /* USER CODE BEGIN 9 */
-  //if (bootloaderIsBusy() == true) {
+  //if (pfsIsBusy() == true) {
   //  return USBD_BUSY;
   //}
 
@@ -230,7 +230,7 @@ int8_t STORAGE_GetCapacity_HS(uint8_t lun, uint32_t *block_num, uint16_t *block_
   *block_num  = STORAGE_BLK_NBR;
   *block_size = STORAGE_BLK_SIZ;
 
-  //if (bootloaderIsBusy() == true) {
+  //if (pfsIsBusy() == true) {
   //  return USBD_BUSY;
   //}
 
@@ -246,7 +246,7 @@ int8_t STORAGE_GetCapacity_HS(uint8_t lun, uint32_t *block_num, uint16_t *block_
 int8_t STORAGE_IsReady_HS(uint8_t lun)
 {
   /* USER CODE BEGIN 11 */
-  if (bootloaderIsBusy() == true) {
+  if (pfsIsBusy() == true) {
     return USBD_BUSY;
   }
 
@@ -262,7 +262,7 @@ int8_t STORAGE_IsReady_HS(uint8_t lun)
 int8_t STORAGE_IsWriteProtected_HS(uint8_t lun)
 {
   /* USER CODE BEGIN 12 */
-  //if (bootloaderIsBusy() == true) {
+  //if (pfsIsBusy() == true) {
   //  return USBD_BUSY;
   //}
 
@@ -278,14 +278,17 @@ int8_t STORAGE_IsWriteProtected_HS(uint8_t lun)
   * @param  blk_len: .
   * @retval USBD_OK if all operations are OK else USBD_FAIL
   */
-int8_t STORAGE_Read_HS(uint8_t lun, uint8_t *buf, uint32_t blk_addr, uint16_t blk_len)
+int8_t STORAGE_Read_HS(USBD_HandleTypeDef  *pdev, uint8_t lun, uint8_t *buf, uint32_t blk_addr, uint16_t blk_len)
 {
   /* USER CODE BEGIN 13 */
-  if (bootloaderIsBusy() == true) {
+  if (pfsIsBusy() == true) {
     return USBD_BUSY;
   }
 
-  pfsRead(blk_addr * STORAGE_BLK_SIZ, STORAGE_BLK_SIZ * blk_len, buf);
+  if (pfsRead(pdev, blk_addr * STORAGE_BLK_SIZ, STORAGE_BLK_SIZ * blk_len, buf) == false) {
+    return (USBD_BUSY);
+  }
+
   return (USBD_OK);
   /* USER CODE END 13 */
 }
@@ -298,14 +301,17 @@ int8_t STORAGE_Read_HS(uint8_t lun, uint8_t *buf, uint32_t blk_addr, uint16_t bl
   * @param  blk_len: .
   * @retval USBD_OK if all operations are OK else USBD_FAIL
   */
-int8_t STORAGE_Write_HS(uint8_t lun, uint8_t *buf, uint32_t blk_addr, uint16_t blk_len)
+int8_t STORAGE_Write_HS(USBD_HandleTypeDef  *pdev, uint8_t lun, uint8_t *buf, uint32_t blk_addr, uint16_t blk_len)
 {
   /* USER CODE BEGIN 14 */
-  if (bootloaderIsBusy() == true) {
+  if (pfsIsBusy() == true) {
     return USBD_BUSY;
   }
 
-  pfsWrite(blk_addr * STORAGE_BLK_SIZ, STORAGE_BLK_SIZ * blk_len, buf);
+  if (pfsWrite(pdev, blk_addr * STORAGE_BLK_SIZ, STORAGE_BLK_SIZ * blk_len, buf) == false) {
+    return (USBD_BUSY);
+  }
+
   return (USBD_OK);
   /* USER CODE END 14 */
 }
@@ -318,7 +324,7 @@ int8_t STORAGE_Write_HS(uint8_t lun, uint8_t *buf, uint32_t blk_addr, uint16_t b
 int8_t STORAGE_GetMaxLun_HS(void)
 {
   /* USER CODE BEGIN 15 */
-  //if (bootloaderIsBusy() == true) {
+  //if (pfsIsBusy() == true) {
   //  return USBD_BUSY;
   //}
 

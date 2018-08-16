@@ -176,6 +176,9 @@ void   SCSI_SenseCode(USBD_HandleTypeDef  *pdev,
                       uint8_t sKey, 
                       uint8_t ASC);
 
+void SCSI_ProcessReadCompleted(USBD_HandleTypeDef  *pdev, const uint8_t *buffer, uint16_t length);
+void SCSI_ProcessWriteCompleted(USBD_HandleTypeDef  *pdev);
+
 /**
   * @}
   */ 

@@ -28,14 +28,13 @@ static tFileInfo pseudoFiles[] = {
 };
 
 typedef struct tBootloaderData {
-  uint8_t blockBuffer[512];
-  uint32_t blockAddress;
-  uint32_t blockLength;
   bool isFlashPrepared;
-  bool isWritingStarted;
 } BootloaderData;
 
 static BootloaderData bootloaderData;
+
+extern void SCSI_ProcessReadCompleted(USBD_HandleTypeDef  *pdev, const uint8_t *buffer, uint16_t length);
+extern void SCSI_ProcessWriteCompleted(USBD_HandleTypeDef  *pdev);
 
 void bootloaderInit(void)
 {
@@ -46,7 +45,6 @@ void bootloaderInit(void)
   }
 
   bootloaderData.isFlashPrepared = false;
-  bootloaderData.isWritingStarted = false;
 
   pseudoFiles[0].size = readme_txt_size;
   pfsInitialize(2, pseudoFiles);
@@ -114,22 +112,6 @@ __weak bool bootloaderPrepareFimrwareArea(void)
   return true;
 }
 
-__weak bool bootloaderReadFirmware(uint8_t *buffer, uint32_t offset, uint32_t count)
-{
-  memcpy(buffer, (const uint8_t *)(BOOTLOADER_FW_AREA_START + offset), count);
-  return true;
-}
-
-__weak bool bootloaderWriteFirmware(const uint8_t *buffer, uint32_t offset, uint32_t count)
-{
-  memcpy(bootloaderData.blockBuffer, buffer, count);
-  bootloaderData.blockAddress = offset;
-  bootloaderData.blockLength = count;
-  bootloaderData.isWritingStarted = true;
-  return true;
-}
-
-
 void pfsFileReadCallback(uint8_t fileId, uint8_t *buffer, uint32_t offset, uint32_t count)
 {
   switch (fileId) {
@@ -142,7 +124,7 @@ void pfsFileReadCallback(uint8_t fileId, uint8_t *buffer, uint32_t offset, uint3
     }
 
     case 2: {
-      bootloaderReadFirmware(buffer, offset, count);
+      memcpy(buffer, (const uint8_t *)(BOOTLOADER_FW_AREA_START + offset), count);
       break;
     }
 
@@ -157,7 +139,19 @@ void pfsFileWriteCallback(uint8_t fileId, const uint8_t *buffer, uint32_t offset
   switch (fileId) {
     // firmware.bin
     case 2: {
-      bootloaderWriteFirmware(buffer, offset, count);
+      if (bootloaderData.isFlashPrepared == false) {
+        bootloaderPrepareFimrwareArea();
+        bootloaderData.isFlashPrepared = true;
+      }
+
+      for (uint32_t itemIndex = 0u; itemIndex < count; itemIndex += 4u) {
+        const uint32_t *value = (const uint32_t *)&buffer[itemIndex];
+
+        if (HAL_FLASH_Program(FLASH_TYPEPROGRAM_WORD, BOOTLOADER_FW_AREA_START + offset + itemIndex, (*value)) != HAL_OK) {
+          return;
+        }
+      }
+
       break;
     }
 
@@ -165,32 +159,6 @@ void pfsFileWriteCallback(uint8_t fileId, const uint8_t *buffer, uint32_t offset
       break;
     }
   }
-}
-
-void bootloaderProcess()
-{
-  if (bootloaderData.isWritingStarted == true) {
-    if (bootloaderData.isFlashPrepared == false) {
-      bootloaderPrepareFimrwareArea();
-      bootloaderData.isFlashPrepared = true;
-    }
-
-    for (uint32_t itemIndex = 0u; itemIndex < bootloaderData.blockLength; itemIndex += 4u) {
-      const uint32_t *value = (const uint32_t *)&bootloaderData.blockBuffer[itemIndex];
-
-      if (HAL_FLASH_Program(FLASH_TYPEPROGRAM_WORD, BOOTLOADER_FW_AREA_START + bootloaderData.blockAddress + itemIndex, (*value)) != HAL_OK) {
-        bootloaderData.isWritingStarted = false;
-        return false;
-      }
-    }
-
-    bootloaderData.isWritingStarted = false;
-  }
-}
-
-bool bootloaderIsBusy()
-{
-  return bootloaderData.isWritingStarted;
 }
 
 #define ADDR_FLASH_SECTOR_0     ((uint32_t)0x08000000) /* Base @ of Sector 0, 16 Kbytes */
