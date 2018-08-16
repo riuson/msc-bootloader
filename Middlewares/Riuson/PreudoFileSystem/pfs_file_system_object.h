@@ -13,6 +13,7 @@
 
 typedef struct tFileSystemObjects {
   const tBootSector *bootSector;
+  tDirectoryRecord volumeLabelRootRecord;
   tFileInfo *fileInfoArray;
   uint8_t filesCount;
   uint32_t fat1Offset;

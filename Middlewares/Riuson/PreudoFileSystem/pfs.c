@@ -33,6 +33,8 @@ static LongOpsData longOpsData;
 
 static void pfsReadSector(uint32_t offset, uint8_t *buffer);
 static void pfsReadFatSector(uint8_t fatNumber, uint32_t firstDword, uint32_t offset, uint8_t *buffer);
+static void pfsReadRootDirectorySector(uint32_t offset, uint8_t *buffer);
+static void pfsWriteRootDirectorySector(uint32_t offset, const uint8_t *buffer);
 static void pfsWriteSector(uint32_t offset, const uint8_t *buffer);
 static bool pfsReadDataArea(USBD_HandleTypeDef  *pdev, uint32_t offset, uint32_t count, uint8_t *buffer);
 static bool pfsWriteDataArea(USBD_HandleTypeDef  *pdev, uint32_t offset, uint32_t count, const uint8_t *buffer);
@@ -84,6 +86,17 @@ void pfsInitialize(uint8_t filesCount, tFileInfo *fileInfoArray)
   fileSystem.fat1FirstDword = fileSystem.fat2FirstDword = 0xfffffff8ul;
   fileSystem.rootOffset = fileSystem.fat2Offset + fileSystem.fat2Length;
   fileSystem.rootLength = PFS_ROOT_ENTRIES * sizeof(tDirectoryRecord);
+
+  // Initialize Volumelabel record in RootDirectory
+  directoryRecordClear(&fileSystem.volumeLabelRootRecord);
+  directoryRecordSetCreationDateTime(&fileSystem.volumeLabelRootRecord, &initializationTime);
+  directoryRecordSetAccessDate(&fileSystem.volumeLabelRootRecord, &initializationTime);
+  directoryRecordSetWriteDateTime(&fileSystem.volumeLabelRootRecord, &initializationTime);
+  fileSystem.volumeLabelRootRecord.attributes = AttrVolumeName;
+  uint8_t volumeLabel[] = PFS_VOLUME_LABEL;
+  memcpy(fileSystem.volumeLabelRootRecord.name, volumeLabel, 11);
+  fileSystem.volumeLabelRootRecord.fileSize = 0;
+  fileSystem.volumeLabelRootRecord.startClusterLow = 0;
 
   longOpsData.operation = LongOpNone;
 }
@@ -151,34 +164,40 @@ static void pfsReadSector(uint32_t offset, uint8_t *buffer)
   }
 
   if ((offset >= fileSystem.fat1Offset) && (offset < (fileSystem.fat1Offset + fileSystem.fat1Length))) {
-    offset -= fileSystem.fat1Offset;
-    pfsReadFatSector(2, fileSystem.fat1FirstDword, offset, buffer);
+    pfsReadFatSector(2, fileSystem.fat1FirstDword, offset - fileSystem.fat1Offset, buffer);
     return;
   }
 
   if ((offset >= fileSystem.fat2Offset) && (offset < (fileSystem.fat2Offset + fileSystem.fat2Length))) {
-    offset -= fileSystem.fat2Offset;
-    pfsReadFatSector(2, fileSystem.fat2FirstDword, offset, buffer);
+    pfsReadFatSector(2, fileSystem.fat2FirstDword, offset - fileSystem.fat2Offset, buffer);
     return;
   }
 
   if ((offset >= fileSystem.rootOffset) && (offset < (fileSystem.rootOffset + fileSystem.rootLength))) {
     memset(buffer, 0, PFS_BYTES_PER_SECTOR);
-    offset -= fileSystem.rootOffset;
+    pfsReadRootDirectorySector(offset - fileSystem.rootOffset, buffer);
+    return;
+  }
+}
 
-    uint16_t firstFileInSectorOfRoot = offset / sizeof(tDirectoryRecord);
-    uint16_t filesPerSectorOfRoot = PFS_BYTES_PER_SECTOR / sizeof(tDirectoryRecord);
+static void pfsWriteSector(uint32_t offset, const uint8_t *buffer)
+{
+  if (offset == 0) {
+    // Keep bootsector unchanged.
+    return;
+  }
 
-    for (uint32_t fileIndex = 0; fileIndex < filesPerSectorOfRoot; fileIndex++) {
-      if ((firstFileInSectorOfRoot + fileIndex) >= fileSystem.filesCount) {
-        break;
-      }
+  if ((offset >= fileSystem.fat1Offset) && (offset < (fileSystem.fat1Offset + fileSystem.fat1Length))) {
+    // Keep FAT unchanged.
+    return;
+  }
 
-      memcpy(buffer + (sizeof(tDirectoryRecord) * fileIndex),
-             &fileSystem.fileInfoArray[firstFileInSectorOfRoot + fileIndex].directoryRecord,
-             sizeof(tDirectoryRecord));
-    }
+  if ((offset >= fileSystem.fat2Offset) && (offset < (fileSystem.fat2Offset + fileSystem.fat2Length))) {
+    // Keep FAT unchanged.
+  }
 
+  if ((offset >= fileSystem.rootOffset) && (offset < (fileSystem.rootOffset + fileSystem.rootLength))) {
+    pfsWriteRootDirectorySector(offset - fileSystem.rootOffset, buffer);
     return;
   }
 }
@@ -223,29 +242,44 @@ static void pfsReadFatSector(uint8_t fatNumber, uint32_t firstDword, uint32_t of
   }
 }
 
-static void pfsWriteSector(uint32_t offset, const uint8_t *buffer)
+static void pfsReadRootDirectorySector(uint32_t offset, uint8_t *buffer)
 {
+  uint16_t firstFileInSectorOfRoot = offset / sizeof(tDirectoryRecord);
+  uint16_t filesPerSectorOfRoot = PFS_BYTES_PER_SECTOR / sizeof(tDirectoryRecord);
+
+  // If sector with volume label.
   if (offset == 0) {
-    // Keep bootsector unchanged.
-    return;
-  }
+    memcpy(buffer, &fileSystem.volumeLabelRootRecord, sizeof(tDirectoryRecord));
 
-  if ((offset >= fileSystem.fat1Offset) && (offset < (fileSystem.fat1Offset + fileSystem.fat1Length))) {
-    // Keep FAT unchanged.
-    return;
-  }
+    for (uint32_t fileIndex = 0; fileIndex < filesPerSectorOfRoot - 1; fileIndex++) {
+      if ((firstFileInSectorOfRoot + fileIndex) >= fileSystem.filesCount) {
+        break;
+      }
 
-  if ((offset >= fileSystem.fat2Offset) && (offset < (fileSystem.fat2Offset + fileSystem.fat2Length))) {
-    // Keep FAT unchanged.
-  }
-
-  if ((offset >= fileSystem.rootOffset) && (offset < (fileSystem.rootOffset + fileSystem.rootLength))) {
-    offset -= fileSystem.rootOffset;
-
-    uint16_t firstFileInSectorOfRoot = offset / sizeof(tDirectoryRecord);
-    uint16_t filesPerSectorOfRoot = PFS_BYTES_PER_SECTOR / sizeof(tDirectoryRecord);
-
+      memcpy(buffer + (sizeof(tDirectoryRecord) * (fileIndex + 1)),
+             &fileSystem.fileInfoArray[firstFileInSectorOfRoot + fileIndex].directoryRecord,
+             sizeof(tDirectoryRecord));
+    }
+  } else {
     for (uint32_t fileIndex = 0; fileIndex < filesPerSectorOfRoot; fileIndex++) {
+      if ((firstFileInSectorOfRoot + fileIndex - 1) >= fileSystem.filesCount) {
+        break;
+      }
+
+      memcpy(buffer + (sizeof(tDirectoryRecord) * fileIndex),
+             &fileSystem.fileInfoArray[firstFileInSectorOfRoot + fileIndex - 1].directoryRecord,
+             sizeof(tDirectoryRecord));
+    }
+  }
+}
+
+static void pfsWriteRootDirectorySector(uint32_t offset, const uint8_t *buffer)
+{
+  uint16_t firstFileInSectorOfRoot = offset / sizeof(tDirectoryRecord);
+  uint16_t filesPerSectorOfRoot = PFS_BYTES_PER_SECTOR / sizeof(tDirectoryRecord);
+
+  if (offset == 0) {
+    for (uint32_t fileIndex = 0; fileIndex < filesPerSectorOfRoot - 1; fileIndex++) {
       if ((firstFileInSectorOfRoot + fileIndex) >= fileSystem.filesCount) {
         break;
       }
@@ -254,16 +288,32 @@ static void pfsWriteSector(uint32_t offset, const uint8_t *buffer)
       if (!directoryRecordIsEmpty(&fileSystem.fileInfoArray[firstFileInSectorOfRoot + fileIndex].directoryRecord)) {
         // Apply only date/time changes.
         memcpy(((uint8_t *)&fileSystem.fileInfoArray[firstFileInSectorOfRoot + fileIndex].directoryRecord) + 0x0d,
-               buffer + (sizeof(tDirectoryRecord) * fileIndex) + 0x0d,
+               buffer + (sizeof(tDirectoryRecord) * (fileIndex + 1)) + 0x0d,
                7);
         memcpy(((uint8_t *)&fileSystem.fileInfoArray[firstFileInSectorOfRoot + fileIndex].directoryRecord) + 0x16,
+               buffer + (sizeof(tDirectoryRecord) * (fileIndex + 1)) + 0x16,
+               4);
+      }
+    }
+  } else {
+    for (uint32_t fileIndex = 0; fileIndex < filesPerSectorOfRoot; fileIndex++) {
+      if ((firstFileInSectorOfRoot + fileIndex - 1) >= fileSystem.filesCount) {
+        break;
+      }
+
+      // Only update existing files.
+      if (!directoryRecordIsEmpty(&fileSystem.fileInfoArray[firstFileInSectorOfRoot + fileIndex].directoryRecord)) {
+        // Apply only date/time changes.
+        memcpy(((uint8_t *)&fileSystem.fileInfoArray[firstFileInSectorOfRoot + fileIndex - 1].directoryRecord) + 0x0d,
+               buffer + (sizeof(tDirectoryRecord) * fileIndex) + 0x0d,
+               7);
+        memcpy(((uint8_t *)&fileSystem.fileInfoArray[firstFileInSectorOfRoot + fileIndex - 1].directoryRecord) + 0x16,
                buffer + (sizeof(tDirectoryRecord) * fileIndex) + 0x16,
                4);
       }
     }
-
-    return;
   }
+
 }
 
 static bool pfsReadDataArea(USBD_HandleTypeDef  *pdev, uint32_t offset, uint32_t count, uint8_t *buffer)
