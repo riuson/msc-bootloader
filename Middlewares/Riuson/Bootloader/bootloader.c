@@ -52,11 +52,22 @@ void bootloaderInit(void)
 
 __weak bool bootloaderIsFirmwarePresent(void)
 {
+  uint32_t *pEStack = (uint32_t *)BOOTLOADER_FW_AREA_START;
+  uint32_t estack = *pEStack;
+
+  if ((estack >= 0x20000000) && (estack <= (0x20000000 + (192 * 1024)))) {
+    return true;
+  }
+
   return false;
 }
 
 __weak bool bootloaderIsManualStartRequired(void)
 {
+  if (HAL_GPIO_ReadPin(KEY_USER_GPIO_Port, KEY_USER_Pin) == GPIO_PIN_SET) {
+    return true;
+  }
+
   return false;
 }
 
