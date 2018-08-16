@@ -114,9 +114,10 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
+    pfsProcessLongOps();
 
   /* USER CODE END WHILE */
-    pfsProcessLongOps();
+
   /* USER CODE BEGIN 3 */
 
   }
