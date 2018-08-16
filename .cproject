@@ -42,15 +42,13 @@
 							<option id="ilg.gnuarmeclipse.managedbuild.cross.option.command.rm.203621301" name="Remove command" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.command.rm" useByScannerDiscovery="false" value="rm" valueType="string"/>
 							<option id="ilg.gnuarmeclipse.managedbuild.cross.option.toolchain.id.1846792999" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.toolchain.id" useByScannerDiscovery="false" value="962691777" valueType="string"/>
 							<targetPlatform archList="all" binaryParser="org.eclipse.cdt.core.ELF" id="ilg.gnuarmeclipse.managedbuild.cross.targetPlatform.675737220" isAbstract="false" osList="all" superClass="ilg.gnuarmeclipse.managedbuild.cross.targetPlatform"/>
-							<builder buildPath="${workspace_loc:/MSCBootloader}/Debug" id="ilg.gnuarmeclipse.managedbuild.cross.builder.750970016" keepEnvironmentInBuildfile="false" managedBuildOn="true" name="Gnu Make Builder" superClass="ilg.gnuarmeclipse.managedbuild.cross.builder"/>
+							<builder buildPath="${workspace_loc:/MSCBootloader}/Debug" id="ilg.gnuarmeclipse.managedbuild.cross.builder.750970016" keepEnvironmentInBuildfile="false" managedBuildOn="true" name="Gnu Make Builder" parallelBuildOn="true" parallelizationNumber="optimal" superClass="ilg.gnuarmeclipse.managedbuild.cross.builder"/>
 							<tool id="ilg.gnuarmeclipse.managedbuild.cross.tool.assembler.1781418557" name="GNU ARM Cross Assembler" superClass="ilg.gnuarmeclipse.managedbuild.cross.tool.assembler">
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.usepreprocessor.1243197542" name="Use preprocessor" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.usepreprocessor" useByScannerDiscovery="false" value="true" valueType="boolean"/>
 								<option IS_BUILTIN_EMPTY="false" IS_VALUE_EMPTY="false" id="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.include.paths.1950545100" name="Include paths (-I)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.include.paths" useByScannerDiscovery="true" valueType="includePath">
 									<listOptionValue builtIn="false" value="${ProjDirPath}/Inc"/>
 									<listOptionValue builtIn="false" value="${ProjDirPath}/Drivers/STM32F4xx_HAL_Driver/Inc"/>
 									<listOptionValue builtIn="false" value="${ProjDirPath}/Drivers/STM32F4xx_HAL_Driver/Inc/Legacy"/>
-									<listOptionValue builtIn="false" value="${ProjDirPath}/Middlewares/ST/STM32_USB_Device_Library/Core/Inc"/>
-									<listOptionValue builtIn="false" value="${ProjDirPath}/Middlewares/ST/STM32_USB_Device_Library/Class/MSC/Inc"/>
 									<listOptionValue builtIn="false" value="${ProjDirPath}/Drivers/CMSIS/Device/ST/STM32F4xx/Include"/>
 									<listOptionValue builtIn="false" value="${ProjDirPath}/Drivers/CMSIS/Include"/>
 								</option>
@@ -68,8 +66,6 @@
 									<listOptionValue builtIn="false" value="${ProjDirPath}/Inc"/>
 									<listOptionValue builtIn="false" value="${ProjDirPath}/Drivers/STM32F4xx_HAL_Driver/Inc"/>
 									<listOptionValue builtIn="false" value="${ProjDirPath}/Drivers/STM32F4xx_HAL_Driver/Inc/Legacy"/>
-									<listOptionValue builtIn="false" value="${ProjDirPath}/Middlewares/ST/STM32_USB_Device_Library/Core/Inc"/>
-									<listOptionValue builtIn="false" value="${ProjDirPath}/Middlewares/ST/STM32_USB_Device_Library/Class/MSC/Inc"/>
 									<listOptionValue builtIn="false" value="${ProjDirPath}/Drivers/CMSIS/Device/ST/STM32F4xx/Include"/>
 									<listOptionValue builtIn="false" value="${ProjDirPath}/Drivers/CMSIS/Include"/>
 								</option>
@@ -87,8 +83,6 @@
 									<listOptionValue builtIn="false" value="${ProjDirPath}/Inc"/>
 									<listOptionValue builtIn="false" value="${ProjDirPath}/Drivers/STM32F4xx_HAL_Driver/Inc"/>
 									<listOptionValue builtIn="false" value="${ProjDirPath}/Drivers/STM32F4xx_HAL_Driver/Inc/Legacy"/>
-									<listOptionValue builtIn="false" value="${ProjDirPath}/Middlewares/ST/STM32_USB_Device_Library/Core/Inc"/>
-									<listOptionValue builtIn="false" value="${ProjDirPath}/Middlewares/ST/STM32_USB_Device_Library/Class/MSC/Inc"/>
 									<listOptionValue builtIn="false" value="${ProjDirPath}/Drivers/CMSIS/Device/ST/STM32F4xx/Include"/>
 									<listOptionValue builtIn="false" value="${ProjDirPath}/Drivers/CMSIS/Include"/>
 								</option>
@@ -133,7 +127,6 @@
 					<sourceEntries>
 						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="Drivers"/>
 						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="Inc"/>
-						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="Middlewares"/>
 						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="Src"/>
 					</sourceEntries>
 				</configuration>
@@ -182,15 +175,13 @@
 							<option id="ilg.gnuarmeclipse.managedbuild.cross.option.command.rm.2035879680" name="Remove command" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.command.rm" useByScannerDiscovery="false" value="rm" valueType="string"/>
 							<option id="ilg.gnuarmeclipse.managedbuild.cross.option.toolchain.id.406294269" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.toolchain.id" useByScannerDiscovery="false" value="962691777" valueType="string"/>
 							<targetPlatform archList="all" binaryParser="org.eclipse.cdt.core.ELF" id="ilg.gnuarmeclipse.managedbuild.cross.targetPlatform.393671024" isAbstract="false" osList="all" superClass="ilg.gnuarmeclipse.managedbuild.cross.targetPlatform"/>
-							<builder buildPath="${workspace_loc:/MSCBootloader}/Release" id="ilg.gnuarmeclipse.managedbuild.cross.builder.654644406" keepEnvironmentInBuildfile="false" managedBuildOn="true" name="Gnu Make Builder" superClass="ilg.gnuarmeclipse.managedbuild.cross.builder"/>
+							<builder buildPath="${workspace_loc:/MSCBootloader}/Release" id="ilg.gnuarmeclipse.managedbuild.cross.builder.654644406" keepEnvironmentInBuildfile="false" managedBuildOn="true" name="Gnu Make Builder" parallelBuildOn="true" parallelizationNumber="optimal" superClass="ilg.gnuarmeclipse.managedbuild.cross.builder"/>
 							<tool id="ilg.gnuarmeclipse.managedbuild.cross.tool.assembler.724753825" name="GNU ARM Cross Assembler" superClass="ilg.gnuarmeclipse.managedbuild.cross.tool.assembler">
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.usepreprocessor.72710276" name="Use preprocessor" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.usepreprocessor" useByScannerDiscovery="false" value="true" valueType="boolean"/>
 								<option IS_BUILTIN_EMPTY="false" IS_VALUE_EMPTY="false" id="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.include.paths.1146709032" name="Include paths (-I)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.include.paths" useByScannerDiscovery="true" valueType="includePath">
 									<listOptionValue builtIn="false" value="${ProjDirPath}/Inc"/>
 									<listOptionValue builtIn="false" value="${ProjDirPath}/Drivers/STM32F4xx_HAL_Driver/Inc"/>
 									<listOptionValue builtIn="false" value="${ProjDirPath}/Drivers/STM32F4xx_HAL_Driver/Inc/Legacy"/>
-									<listOptionValue builtIn="false" value="${ProjDirPath}/Middlewares/ST/STM32_USB_Device_Library/Core/Inc"/>
-									<listOptionValue builtIn="false" value="${ProjDirPath}/Middlewares/ST/STM32_USB_Device_Library/Class/MSC/Inc"/>
 									<listOptionValue builtIn="false" value="${ProjDirPath}/Drivers/CMSIS/Device/ST/STM32F4xx/Include"/>
 									<listOptionValue builtIn="false" value="${ProjDirPath}/Drivers/CMSIS/Include"/>
 								</option>
@@ -208,8 +199,6 @@
 									<listOptionValue builtIn="false" value="${ProjDirPath}/Inc"/>
 									<listOptionValue builtIn="false" value="${ProjDirPath}/Drivers/STM32F4xx_HAL_Driver/Inc"/>
 									<listOptionValue builtIn="false" value="${ProjDirPath}/Drivers/STM32F4xx_HAL_Driver/Inc/Legacy"/>
-									<listOptionValue builtIn="false" value="${ProjDirPath}/Middlewares/ST/STM32_USB_Device_Library/Core/Inc"/>
-									<listOptionValue builtIn="false" value="${ProjDirPath}/Middlewares/ST/STM32_USB_Device_Library/Class/MSC/Inc"/>
 									<listOptionValue builtIn="false" value="${ProjDirPath}/Drivers/CMSIS/Device/ST/STM32F4xx/Include"/>
 									<listOptionValue builtIn="false" value="${ProjDirPath}/Drivers/CMSIS/Include"/>
 								</option>
@@ -227,8 +216,6 @@
 									<listOptionValue builtIn="false" value="${ProjDirPath}/Inc"/>
 									<listOptionValue builtIn="false" value="${ProjDirPath}/Drivers/STM32F4xx_HAL_Driver/Inc"/>
 									<listOptionValue builtIn="false" value="${ProjDirPath}/Drivers/STM32F4xx_HAL_Driver/Inc/Legacy"/>
-									<listOptionValue builtIn="false" value="${ProjDirPath}/Middlewares/ST/STM32_USB_Device_Library/Core/Inc"/>
-									<listOptionValue builtIn="false" value="${ProjDirPath}/Middlewares/ST/STM32_USB_Device_Library/Class/MSC/Inc"/>
 									<listOptionValue builtIn="false" value="${ProjDirPath}/Drivers/CMSIS/Device/ST/STM32F4xx/Include"/>
 									<listOptionValue builtIn="false" value="${ProjDirPath}/Drivers/CMSIS/Include"/>
 								</option>
@@ -273,7 +260,6 @@
 					<sourceEntries>
 						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="Drivers"/>
 						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="Inc"/>
-						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="Middlewares"/>
 						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="Src"/>
 					</sourceEntries>
 				</configuration>
