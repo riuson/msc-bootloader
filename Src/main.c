@@ -84,7 +84,7 @@ void SystemClock_Config(void);
 int main(void)
 {
   /* USER CODE BEGIN 1 */
-  bootloaderInit();
+
   /* USER CODE END 1 */
 
   /* MCU Configuration----------------------------------------------------------*/
@@ -105,9 +105,9 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
-  MX_USB_DEVICE_Init();
   /* USER CODE BEGIN 2 */
-
+  bootloaderInit();
+  MX_USB_DEVICE_Init();
   /* USER CODE END 2 */
 
   /* Infinite loop */
