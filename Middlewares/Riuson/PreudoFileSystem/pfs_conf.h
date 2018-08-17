@@ -10,9 +10,6 @@
 
 #include <stdint.h>
 
-// http://s-engineer.ru/opisanie-fajlovoj-sistemy-fat16/
-// http://www.beginningtoseethelight.org/fat16/index.htm
-
 #define PFS_BYTES_PER_SECTOR      (512u)
 #define PFS_SECTORS_PER_CLUSTER   (1u)
 #define PFS_RESERVED_SECTORS      (1u)
