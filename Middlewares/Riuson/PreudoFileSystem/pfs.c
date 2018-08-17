@@ -24,7 +24,7 @@ typedef struct tLongOpsData {
   uint8_t fileId;
   uint32_t blockAddress;
   uint32_t blockLength;
-  USBD_HandleTypeDef *pDev;
+  void *context;
   LongOperation operation;
 } LongOpsData;
 
@@ -36,11 +36,8 @@ static void pfsReadFatSector(uint8_t fatNumber, uint32_t firstDword, uint32_t of
 static void pfsReadRootDirectorySector(uint32_t offset, uint8_t *buffer);
 static void pfsWriteRootDirectorySector(uint32_t offset, const uint8_t *buffer);
 static void pfsWriteSector(uint32_t offset, const uint8_t *buffer);
-static bool pfsReadDataArea(USBD_HandleTypeDef  *pdev, uint32_t offset, uint32_t count, uint8_t *buffer);
-static bool pfsWriteDataArea(USBD_HandleTypeDef  *pdev, uint32_t offset, uint32_t count, const uint8_t *buffer);
-
-extern void SCSI_ProcessReadCompleted(USBD_HandleTypeDef  *pdev, const uint8_t *buffer, uint16_t length);
-extern void SCSI_ProcessWriteCompleted(USBD_HandleTypeDef  *pdev);
+static bool pfsReadDataArea(void *context, uint32_t offset, uint32_t count, uint8_t *buffer);
+static bool pfsWriteDataArea(void *context, uint32_t offset, uint32_t count, const uint8_t *buffer);
 
 void pfsInitialize(uint8_t filesCount, tFileInfo *fileInfoArray)
 {
@@ -101,7 +98,7 @@ void pfsInitialize(uint8_t filesCount, tFileInfo *fileInfoArray)
   longOpsData.operation = LongOpNone;
 }
 
-bool pfsRead(USBD_HandleTypeDef  *pdev, uint32_t offset, uint32_t count, uint8_t *buffer)
+bool pfsRead(void *context, uint32_t offset, uint32_t count, uint8_t *buffer)
 {
   // Requested array must be aligned to sectors.
   if (((offset % PFS_BYTES_PER_SECTOR) != 0) || ((count % PFS_BYTES_PER_SECTOR) != 0)) {
@@ -112,7 +109,7 @@ bool pfsRead(USBD_HandleTypeDef  *pdev, uint32_t offset, uint32_t count, uint8_t
 
   // Request to data area
   if ((offset >= fileSystem.dataAreaOffset) && (offset < (fileSystem.dataAreaOffset + fileSystem.dataAreaLength))) {
-    return pfsReadDataArea(pdev, offset, count, buffer);
+    return pfsReadDataArea(context, offset, count, buffer);
   }
 
   for (uint32_t i = 0; i < sectorsCount; i++) {
@@ -122,7 +119,7 @@ bool pfsRead(USBD_HandleTypeDef  *pdev, uint32_t offset, uint32_t count, uint8_t
   return true;
 }
 
-bool pfsWrite(USBD_HandleTypeDef  *pdev, uint32_t offset, uint32_t count, const uint8_t *buffer)
+bool pfsWrite(void *context, uint32_t offset, uint32_t count, const uint8_t *buffer)
 {
   // Requested array must be aligned to sectors.
   if (((offset % PFS_BYTES_PER_SECTOR) != 0) || ((count % PFS_BYTES_PER_SECTOR) != 0)) {
@@ -133,7 +130,7 @@ bool pfsWrite(USBD_HandleTypeDef  *pdev, uint32_t offset, uint32_t count, const 
 
   // Request to data area
   if ((offset >= fileSystem.dataAreaOffset) && (offset < (fileSystem.dataAreaOffset + fileSystem.dataAreaLength))) {
-    return pfsWriteDataArea(pdev, offset, count, buffer);
+    return pfsWriteDataArea(context, offset, count, buffer);
   }
 
   for (uint32_t i = 0; i < sectorsCount; i++) {
@@ -146,14 +143,6 @@ bool pfsWrite(USBD_HandleTypeDef  *pdev, uint32_t offset, uint32_t count, const 
 uint32_t pfsGetTotalSectorsCount(void)
 {
   return PFS_TOTAL_SECTORS;
-}
-
-__weak void pfsFileReadCallback(uint8_t fileId, uint8_t *buffer, uint32_t offset, uint32_t count)
-{
-}
-
-__weak void pfsFileWriteCallback(uint8_t fileId, const uint8_t *buffer, uint32_t offset, uint32_t count)
-{
 }
 
 static void pfsReadSector(uint32_t offset, uint8_t *buffer)
@@ -316,14 +305,14 @@ static void pfsWriteRootDirectorySector(uint32_t offset, const uint8_t *buffer)
 
 }
 
-static bool pfsReadDataArea(USBD_HandleTypeDef  *pdev, uint32_t offset, uint32_t count, uint8_t *buffer)
+static bool pfsReadDataArea(void *context, uint32_t offset, uint32_t count, uint8_t *buffer)
 {
   for (uint32_t fileIndex = 0; fileIndex < fileSystem.filesCount; fileIndex++) {
     if ((fileSystem.fileInfoArray[fileIndex].dataAreaOffset <= offset) && (offset < (fileSystem.fileInfoArray[fileIndex].dataAreaOffset + fileSystem.fileInfoArray[fileIndex].dataAreaLength))) {
       offset -= fileSystem.fileInfoArray[fileIndex].dataAreaOffset;
       longOpsData.blockAddress = offset;
       longOpsData.blockLength = count;
-      longOpsData.pDev = pdev;
+      longOpsData.context = context;
       longOpsData.fileId = fileSystem.fileInfoArray[fileIndex].id;
       longOpsData.operation = LongOpRead;
       return false;
@@ -334,7 +323,7 @@ static bool pfsReadDataArea(USBD_HandleTypeDef  *pdev, uint32_t offset, uint32_t
   return true;
 }
 
-static bool pfsWriteDataArea(USBD_HandleTypeDef  *pdev, uint32_t offset, uint32_t count, const uint8_t *buffer)
+static bool pfsWriteDataArea(void *context, uint32_t offset, uint32_t count, const uint8_t *buffer)
 {
 
   for (uint32_t fileIndex = 0; fileIndex < fileSystem.filesCount; fileIndex++) {
@@ -343,7 +332,7 @@ static bool pfsWriteDataArea(USBD_HandleTypeDef  *pdev, uint32_t offset, uint32_
       memcpy(longOpsData.blockBuffer, buffer, count);
       longOpsData.blockAddress = offset;
       longOpsData.blockLength = count;
-      longOpsData.pDev = pdev;
+      longOpsData.context = context;
       longOpsData.fileId = fileSystem.fileInfoArray[fileIndex].id;
       longOpsData.operation = LongOpWrite;
       return false;
@@ -363,14 +352,14 @@ void pfsProcessLongOps()
 
     case LongOpRead: {
       pfsFileReadCallback(longOpsData.fileId, longOpsData.blockBuffer, longOpsData.blockAddress, longOpsData.blockLength);
-      SCSI_ProcessReadCompleted(longOpsData.pDev, longOpsData.blockBuffer, longOpsData.blockLength);
+      pfsFileReadCompletedCallback(longOpsData.context, longOpsData.blockBuffer, longOpsData.blockLength);
       longOpsData.operation = LongOpNone;
       break;
     }
 
     case LongOpWrite: {
       pfsFileWriteCallback(longOpsData.fileId, longOpsData.blockBuffer, longOpsData.blockAddress, longOpsData.blockLength);
-      SCSI_ProcessWriteCompleted(longOpsData.pDev);
+      pfsFileWriteCompletedCallback(longOpsData.context);
       longOpsData.operation = LongOpNone;
       break;
     }
@@ -380,4 +369,20 @@ void pfsProcessLongOps()
 bool pfsIsBusy()
 {
   return (longOpsData.operation != LongOpNone ? true : false);
+}
+
+__weak void pfsFileReadCallback(uint8_t fileId, uint8_t *buffer, uint32_t offset, uint32_t count)
+{
+}
+
+__weak void pfsFileWriteCallback(uint8_t fileId, const uint8_t *buffer, uint32_t offset, uint32_t count)
+{
+}
+
+__weak void pfsFileReadCompletedCallback(void *context, const uint8_t *buffer, uint16_t length)
+{
+}
+
+__weak void pfsFileWriteCompletedCallback(void *context)
+{
 }

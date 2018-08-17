@@ -10,15 +10,17 @@
 
 #include "pfs_file_info.h"
 #include <stdint.h>
-#include <usbd_def.h>
 
 void pfsInitialize(uint8_t filesCount, tFileInfo *fileInfoArray);
-bool pfsRead(USBD_HandleTypeDef  *pdev, uint32_t offset, uint32_t count, uint8_t *buffer);
-bool pfsWrite(USBD_HandleTypeDef  *pdev, uint32_t offset, uint32_t count, const uint8_t *buffer);
+bool pfsRead(void *context, uint32_t offset, uint32_t count, uint8_t *buffer);
+bool pfsWrite(void *context, uint32_t offset, uint32_t count, const uint8_t *buffer);
 uint32_t pfsGetTotalSectorsCount(void);
-void pfsFileReadCallback(uint8_t fileId, uint8_t *buffer, uint32_t offset, uint32_t count);
-void pfsFileWriteCallback(uint8_t fileId, const uint8_t *buffer, uint32_t offset, uint32_t count);
 void pfsProcessLongOps();
 bool pfsIsBusy();
+
+void pfsFileReadCallback(uint8_t fileId, uint8_t *buffer, uint32_t offset, uint32_t count);
+void pfsFileWriteCallback(uint8_t fileId, const uint8_t *buffer, uint32_t offset, uint32_t count);
+void pfsFileReadCompletedCallback(void *context, const uint8_t *buffer, uint16_t length);
+void pfsFileWriteCompletedCallback(void *context);
 
 #endif /* RIUSON_PREUDOFILESYSTEM_PFS_H_ */

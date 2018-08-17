@@ -123,6 +123,16 @@ __weak bool bootloaderPrepareFimrwareArea(void)
   return true;
 }
 
+__weak void pfsFileReadCompletedCallback(void *context, const uint8_t *buffer, uint16_t length)
+{
+  SCSI_ProcessReadCompleted((USBD_HandleTypeDef *)context, buffer, length);
+}
+
+__weak void pfsFileWriteCompletedCallback(void *context)
+{
+  SCSI_ProcessWriteCompleted((USBD_HandleTypeDef *)context);
+}
+
 void pfsFileReadCallback(uint8_t fileId, uint8_t *buffer, uint32_t offset, uint32_t count)
 {
   switch (fileId) {
