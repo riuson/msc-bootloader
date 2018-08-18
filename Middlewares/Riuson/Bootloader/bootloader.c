@@ -67,10 +67,6 @@ void pfsFileReadCallback(uint8_t fileId, uint8_t *buffer, uint32_t offset, uint3
   }
 }
 
-__weak bool bootloaderWriteFirmware(const uint8_t *buffer, uint32_t address, uint32_t count)
-{
-}
-
 void pfsFileWriteCallback(uint8_t fileId, const uint8_t *buffer, uint32_t offset, uint32_t count)
 {
   switch (fileId) {
@@ -92,4 +88,25 @@ void pfsFileWriteCallback(uint8_t fileId, const uint8_t *buffer, uint32_t offset
       break;
     }
   }
+}
+
+
+__weak bool bootloaderIsFirmwarePresent(void)
+{
+}
+
+__weak bool bootloaderIsManualStartRequired(void)
+{
+}
+
+__weak void bootloaderRunFirmware(void)
+{
+}
+
+__weak bool bootloaderPrepareFimrwareArea(void)
+{
+}
+
+__weak bool bootloaderWriteFirmware(const uint8_t *buffer, uint32_t address, uint32_t count)
+{
 }

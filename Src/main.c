@@ -187,7 +187,7 @@ void SystemClock_Config(void)
 
 /* USER CODE BEGIN 4 */
 
-__weak bool bootloaderIsFirmwarePresent(void)
+bool bootloaderIsFirmwarePresent(void)
 {
   uint32_t *pEStack = (uint32_t *)BOOTLOADER_FW_AREA_START;
   uint32_t estack = *pEStack;
@@ -199,7 +199,7 @@ __weak bool bootloaderIsFirmwarePresent(void)
   return false;
 }
 
-__weak bool bootloaderIsManualStartRequired(void)
+bool bootloaderIsManualStartRequired(void)
 {
   if (HAL_GPIO_ReadPin(KEY_USER_GPIO_Port, KEY_USER_Pin) == GPIO_PIN_SET) {
     return true;
@@ -208,7 +208,7 @@ __weak bool bootloaderIsManualStartRequired(void)
   return false;
 }
 
-__weak void bootloaderRunFirmware(void)
+void bootloaderRunFirmware(void)
 {
   typedef void (*pFunction)(void);
   pFunction Jump_To_Application;
@@ -225,7 +225,7 @@ __weak void bootloaderRunFirmware(void)
 static uint32_t GetSector(uint32_t Address);
 static uint32_t GetSectorSize(uint32_t Sector);
 
-__weak bool bootloaderPrepareFimrwareArea(void)
+bool bootloaderPrepareFimrwareArea(void)
 {
   HAL_FLASH_Unlock();
 
@@ -260,25 +260,27 @@ __weak bool bootloaderPrepareFimrwareArea(void)
   return true;
 }
 
-__weak void pfsFileReadCompletedCallback(void *context, const uint8_t *buffer, uint16_t length)
+void pfsFileReadCompletedCallback(void *context, const uint8_t *buffer, uint16_t length)
 {
   SCSI_ProcessReadCompleted((USBD_HandleTypeDef *)context, buffer, length);
 }
 
-__weak void pfsFileWriteCompletedCallback(void *context)
+void pfsFileWriteCompletedCallback(void *context)
 {
   SCSI_ProcessWriteCompleted((USBD_HandleTypeDef *)context);
 }
 
-__weak bool bootloaderWriteFirmware(const uint8_t *buffer, uint32_t address, uint32_t count)
+bool bootloaderWriteFirmware(const uint8_t *buffer, uint32_t address, uint32_t count)
 {
   for (uint32_t itemIndex = 0u; itemIndex < count; itemIndex += 4u) {
     const uint32_t *value = (const uint32_t *)&buffer[itemIndex];
 
     if (HAL_FLASH_Program(FLASH_TYPEPROGRAM_WORD, address + itemIndex, (*value)) != HAL_OK) {
-      return;
+      return false;
     }
   }
+
+  return true;
 }
 
 #define ADDR_FLASH_SECTOR_0     ((uint32_t)0x08000000) /* Base @ of Sector 0, 16 Kbytes */
