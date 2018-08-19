@@ -5,8 +5,8 @@
  *      Author: Vladimir (riuson@gmail.com)
  */
 
-#ifndef RIUSON_PREUDOFILESYSTEM_PFS_BOOT_SECTOR_H_
-#define RIUSON_PREUDOFILESYSTEM_PFS_BOOT_SECTOR_H_
+#ifndef RIUSON_PSEUDOFILESYSTEM_PFS_BOOT_SECTOR_H_
+#define RIUSON_PSEUDOFILESYSTEM_PFS_BOOT_SECTOR_H_
 
 #include <stdint.h>
 
@@ -41,4 +41,4 @@ typedef struct tBootSectors {
 
 extern const tBootSector const bootSector;
 
-#endif /* RIUSON_PREUDOFILESYSTEM_PFS_BOOT_SECTOR_H_ */
+#endif /* RIUSON_PSEUDOFILESYSTEM_PFS_BOOT_SECTOR_H_ */

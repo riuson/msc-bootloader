@@ -5,11 +5,11 @@
  *      Author: Vladimir (riuson@gmail.com)
  */
 
-#ifndef RIUSON_PREUDOFILESYSTEM_PFS_FILE_SYSTEM_OBJECT_H_
-#define RIUSON_PREUDOFILESYSTEM_PFS_FILE_SYSTEM_OBJECT_H_
+#ifndef RIUSON_PSEUDOFILESYSTEM_PFS_FILE_SYSTEM_OBJECT_H_
+#define RIUSON_PSEUDOFILESYSTEM_PFS_FILE_SYSTEM_OBJECT_H_
 
-#include "pfs_file_info.h"
 #include "pfs_boot_sector.h"
+#include "pfs_file_info.h"
 
 typedef struct tFileSystemObjects {
   const tBootSector *bootSector;
@@ -28,4 +28,4 @@ typedef struct tFileSystemObjects {
   uint32_t dataAreaLength;
 } tFileSystemObject;
 
-#endif /* RIUSON_PREUDOFILESYSTEM_PFS_FILE_SYSTEM_OBJECT_H_ */
+#endif /* RIUSON_PSEUDOFILESYSTEM_PFS_FILE_SYSTEM_OBJECT_H_ */

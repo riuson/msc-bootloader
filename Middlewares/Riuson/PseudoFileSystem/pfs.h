@@ -5,8 +5,8 @@
  *      Author: Vladimir (riuson@gmail.com)
  */
 
-#ifndef RIUSON_PREUDOFILESYSTEM_PFS_H_
-#define RIUSON_PREUDOFILESYSTEM_PFS_H_
+#ifndef RIUSON_PSEUDOFILESYSTEM_PFS_H_
+#define RIUSON_PSEUDOFILESYSTEM_PFS_H_
 
 #include "pfs_file_info.h"
 #include <stdint.h>
@@ -23,4 +23,4 @@ void pfsFileWriteCallback(uint8_t fileId, const uint8_t *buffer, uint32_t offset
 void pfsFileReadCompletedCallback(void *context, const uint8_t *buffer, uint16_t length);
 void pfsFileWriteCompletedCallback(void *context);
 
-#endif /* RIUSON_PREUDOFILESYSTEM_PFS_H_ */
+#endif /* RIUSON_PSEUDOFILESYSTEM_PFS_H_ */

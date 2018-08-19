@@ -5,10 +5,10 @@
  *      Author: Vladimir (riuson@gmail.com)
  */
 
-#ifndef RIUSON_PREUDOFILESYSTEM_PFS_FILE_INFO_H_
-#define RIUSON_PREUDOFILESYSTEM_PFS_FILE_INFO_H_
+#ifndef RIUSON_PSEUDOFILESYSTEM_PFS_FILE_INFO_H_
+#define RIUSON_PSEUDOFILESYSTEM_PFS_FILE_INFO_H_
 
-#include  "pfs_directory_record.h"
+#include "pfs_directory_record.h"
 
 #pragma pack(push, 1)
 
@@ -29,4 +29,4 @@ typedef struct tFileInfos {
 
 #pragma pack(pop)
 
-#endif /* RIUSON_PREUDOFILESYSTEM_PFS_FILE_INFO_H_ */
+#endif /* RIUSON_PSEUDOFILESYSTEM_PFS_FILE_INFO_H_ */

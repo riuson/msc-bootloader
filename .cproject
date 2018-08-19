@@ -53,7 +53,7 @@
 									<listOptionValue builtIn="false" value="${ProjDirPath}/Middlewares/ST/STM32_USB_Device_Library/Class/MSC/Inc"/>
 									<listOptionValue builtIn="false" value="${ProjDirPath}/Drivers/CMSIS/Device/ST/STM32F4xx/Include"/>
 									<listOptionValue builtIn="false" value="${ProjDirPath}/Drivers/CMSIS/Include"/>
-									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/Middlewares/Riuson/PreudoFileSystem&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/Middlewares/Riuson/PseudoFileSystem&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/Resources&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/Middlewares/Riuson/Bootloader&quot;"/>
 								</option>
@@ -75,7 +75,7 @@
 									<listOptionValue builtIn="false" value="${ProjDirPath}/Middlewares/ST/STM32_USB_Device_Library/Class/MSC/Inc"/>
 									<listOptionValue builtIn="false" value="${ProjDirPath}/Drivers/CMSIS/Device/ST/STM32F4xx/Include"/>
 									<listOptionValue builtIn="false" value="${ProjDirPath}/Drivers/CMSIS/Include"/>
-									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/Middlewares/Riuson/PreudoFileSystem&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/Middlewares/Riuson/PseudoFileSystem&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/Resources&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/Middlewares/Riuson/Bootloader&quot;"/>
 								</option>
@@ -97,7 +97,7 @@
 									<listOptionValue builtIn="false" value="${ProjDirPath}/Middlewares/ST/STM32_USB_Device_Library/Class/MSC/Inc"/>
 									<listOptionValue builtIn="false" value="${ProjDirPath}/Drivers/CMSIS/Device/ST/STM32F4xx/Include"/>
 									<listOptionValue builtIn="false" value="${ProjDirPath}/Drivers/CMSIS/Include"/>
-									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/Middlewares/Riuson/PreudoFileSystem&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/Middlewares/Riuson/PseudoFileSystem&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/Resources&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/Middlewares/Riuson/Bootloader&quot;"/>
 								</option>
@@ -203,7 +203,7 @@
 									<listOptionValue builtIn="false" value="${ProjDirPath}/Middlewares/ST/STM32_USB_Device_Library/Class/MSC/Inc"/>
 									<listOptionValue builtIn="false" value="${ProjDirPath}/Drivers/CMSIS/Device/ST/STM32F4xx/Include"/>
 									<listOptionValue builtIn="false" value="${ProjDirPath}/Drivers/CMSIS/Include"/>
-									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/Middlewares/Riuson/PreudoFileSystem&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/Middlewares/Riuson/PseudoFileSystem&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/Resources&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/Middlewares/Riuson/Bootloader&quot;"/>
 								</option>
@@ -225,7 +225,7 @@
 									<listOptionValue builtIn="false" value="${ProjDirPath}/Middlewares/ST/STM32_USB_Device_Library/Class/MSC/Inc"/>
 									<listOptionValue builtIn="false" value="${ProjDirPath}/Drivers/CMSIS/Device/ST/STM32F4xx/Include"/>
 									<listOptionValue builtIn="false" value="${ProjDirPath}/Drivers/CMSIS/Include"/>
-									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/Middlewares/Riuson/PreudoFileSystem&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/Middlewares/Riuson/PseudoFileSystem&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/Resources&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/Middlewares/Riuson/Bootloader&quot;"/>
 								</option>
@@ -247,7 +247,7 @@
 									<listOptionValue builtIn="false" value="${ProjDirPath}/Middlewares/ST/STM32_USB_Device_Library/Class/MSC/Inc"/>
 									<listOptionValue builtIn="false" value="${ProjDirPath}/Drivers/CMSIS/Device/ST/STM32F4xx/Include"/>
 									<listOptionValue builtIn="false" value="${ProjDirPath}/Drivers/CMSIS/Include"/>
-									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/Middlewares/Riuson/PreudoFileSystem&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/Middlewares/Riuson/PseudoFileSystem&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/Resources&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${ProjDirPath}/Middlewares/Riuson/Bootloader&quot;"/>
 								</option>

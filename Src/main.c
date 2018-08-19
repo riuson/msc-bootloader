@@ -53,8 +53,8 @@
 #include "gpio.h"
 
 /* USER CODE BEGIN Includes */
-#include "pfs.h"
 #include "bootloader.h"
+#include "pfs.h"
 /* USER CODE END Includes */
 
 /* Private variables ---------------------------------------------------------*/

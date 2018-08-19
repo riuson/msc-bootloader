@@ -5,8 +5,8 @@
  *      Author: Vladimir (riuson@gmail.com)
  */
 
-#ifndef RIUSON_PREUDOFILESYSTEM_PFS_DIRECTORY_RECORD_H_
-#define RIUSON_PREUDOFILESYSTEM_PFS_DIRECTORY_RECORD_H_
+#ifndef RIUSON_PSEUDOFILESYSTEM_PFS_DIRECTORY_RECORD_H_
+#define RIUSON_PSEUDOFILESYSTEM_PFS_DIRECTORY_RECORD_H_
 
 #include <stdbool.h>
 #include <stdint.h>
@@ -48,4 +48,4 @@ void directoryRecordSetCreationDateTime(tDirectoryRecord *record, const time_t *
 void directoryRecordSetAccessDate(tDirectoryRecord *record, const time_t *value);
 void directoryRecordSetWriteDateTime(tDirectoryRecord *record, const time_t *value);
 
-#endif /* RIUSON_PREUDOFILESYSTEM_PFS_DIRECTORY_RECORD_H_ */
+#endif /* RIUSON_PSEUDOFILESYSTEM_PFS_DIRECTORY_RECORD_H_ */
