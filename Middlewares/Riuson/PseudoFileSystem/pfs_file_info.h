@@ -10,6 +10,10 @@
 
 #include "pfs_directory_record.h"
 
+#ifdef __cplusplus
+ extern "C" {
+#endif
+
 #pragma pack(push, 1)
 
 typedef struct tFileInfos {
@@ -28,5 +32,9 @@ typedef struct tFileInfos {
 } tFileInfo;
 
 #pragma pack(pop)
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* RIUSON_PSEUDOFILESYSTEM_PFS_FILE_INFO_H_ */

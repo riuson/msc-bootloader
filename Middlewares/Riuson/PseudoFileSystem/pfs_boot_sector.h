@@ -10,6 +10,10 @@
 
 #include <stdint.h>
 
+#ifdef __cplusplus
+ extern "C" {
+#endif
+
 #pragma pack(push, 1)
 
 typedef struct tBootSectors {
@@ -40,5 +44,9 @@ typedef struct tBootSectors {
 #pragma pack(pop)
 
 extern const tBootSector const bootSector;
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* RIUSON_PSEUDOFILESYSTEM_PFS_BOOT_SECTOR_H_ */

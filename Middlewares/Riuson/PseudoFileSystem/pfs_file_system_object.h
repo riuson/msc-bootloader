@@ -11,6 +11,10 @@
 #include "pfs_boot_sector.h"
 #include "pfs_file_info.h"
 
+#ifdef __cplusplus
+ extern "C" {
+#endif
+
 typedef struct tFileSystemObjects {
   const tBootSector *bootSector;
   tDirectoryRecord volumeLabelRootRecord;
@@ -27,5 +31,9 @@ typedef struct tFileSystemObjects {
   uint32_t dataAreaOffset;
   uint32_t dataAreaLength;
 } tFileSystemObject;
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* RIUSON_PSEUDOFILESYSTEM_PFS_FILE_SYSTEM_OBJECT_H_ */

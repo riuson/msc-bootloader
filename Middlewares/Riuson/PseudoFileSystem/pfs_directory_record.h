@@ -12,6 +12,10 @@
 #include <stdint.h>
 #include <time.h>
 
+#ifdef __cplusplus
+ extern "C" {
+#endif
+
 typedef enum tAttributes {
   AttrNone = 0x00,
   AttrReadOnly = 0x01,
@@ -47,5 +51,9 @@ bool directoryRecordIsEmpty(const tDirectoryRecord *record);
 void directoryRecordSetCreationDateTime(tDirectoryRecord *record, const time_t *value);
 void directoryRecordSetAccessDate(tDirectoryRecord *record, const time_t *value);
 void directoryRecordSetWriteDateTime(tDirectoryRecord *record, const time_t *value);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* RIUSON_PSEUDOFILESYSTEM_PFS_DIRECTORY_RECORD_H_ */

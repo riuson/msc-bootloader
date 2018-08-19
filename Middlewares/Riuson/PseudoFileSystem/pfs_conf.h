@@ -10,6 +10,10 @@
 
 #include <stdint.h>
 
+#ifdef __cplusplus
+ extern "C" {
+#endif
+
 #define PFS_BYTES_PER_SECTOR      (512u)
 #define PFS_SECTORS_PER_CLUSTER   (1u)
 #define PFS_RESERVED_SECTORS      (1u)
@@ -24,5 +28,9 @@
 #define PFS_SYSTEM_ID             { 'F', 'A', 'T', '1', '6', ' ', ' ', ' ' }
 
 #define PFS_BYTES_PER_CLUSTER     (PFS_BYTES_PER_SECTOR * PFS_SECTORS_PER_CLUSTER)
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* RIUSON_PSEUDOFILESYSTEM_PFS_CONF_H_ */
